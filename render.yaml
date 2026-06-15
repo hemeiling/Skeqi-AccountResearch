@@ -12,6 +12,10 @@ services:
         sync: false
       - key: DATA_DIR
         value: /data
+      - key: BASIC_AUTH_USER
+        sync: false
+      - key: BASIC_AUTH_PASS
+        sync: false
     disk:
       name: data
       mountPath: /data

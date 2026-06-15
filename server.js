@@ -14,6 +14,7 @@ const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
 const fs      = require('fs');
+const crypto  = require('crypto');
 require('dotenv').config();
 
 const app  = express();
@@ -39,6 +40,41 @@ for (const level of ['log', 'warn', 'error']) {
     const line = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
     logStream.write(`[${new Date().toISOString()}] [${level}] ${line}\n`);
   };
+}
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+// Optional shared-credential gate (HTTP Basic Auth) for the whole app. Set
+// BASIC_AUTH_USER / BASIC_AUTH_PASS to enable; leave unset to run open (e.g.
+// for local dev). /health stays open so uptime checks don't need credentials.
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER;
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS;
+
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  if (bufA.length !== bufB.length) {
+    crypto.timingSafeEqual(bufA, Buffer.alloc(bufA.length)); // keep timing constant
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+if (BASIC_AUTH_USER && BASIC_AUTH_PASS) {
+  app.use((req, res, next) => {
+    if (req.path === '/health') return next();
+    const header = req.headers.authorization || '';
+    if (header.startsWith('Basic ')) {
+      const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+      const sep = decoded.indexOf(':');
+      const user = sep === -1 ? decoded : decoded.slice(0, sep);
+      const pass = sep === -1 ? '' : decoded.slice(sep + 1);
+      if (safeEqual(user, BASIC_AUTH_USER) && safeEqual(pass, BASIC_AUTH_PASS)) {
+        return next();
+      }
+    }
+    res.set('WWW-Authenticate', 'Basic realm="Account Plan Generator"');
+    res.status(401).send('Authentication required.');
+  });
 }
 
 // ── Middleware ──────────────────────────────────────────────────────────────
