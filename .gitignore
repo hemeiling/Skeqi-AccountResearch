@@ -1,0 +1,7 @@
+node_modules/
+.env
+logs/
+reports/
+research-cache/
+.DS_Store
+.claude/

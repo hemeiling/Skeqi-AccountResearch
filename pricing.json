@@ -1,0 +1,7 @@
+{
+  "_comment": "Claude API pricing in USD per 1,000,000 tokens. Used to estimate report generation cost when the API response includes usage but not a direct dollar amount. Edit these rates to match current Anthropic pricing (https://www.anthropic.com/pricing), or override entirely by setting the ANTHROPIC_PRICING_JSON env var to a JSON string with the same shape.",
+  "claude-sonnet-4-6":         { "input": 3.0,  "output": 15.0, "cacheWrite": 3.75, "cacheRead": 0.3 },
+  "claude-opus-4-6":           { "input": 15.0, "output": 75.0, "cacheWrite": 18.75, "cacheRead": 1.5 },
+  "claude-haiku-4-5-20251001": { "input": 1.0,  "output": 5.0,  "cacheWrite": 1.25, "cacheRead": 0.1 },
+  "_default":                  { "input": 3.0,  "output": 15.0, "cacheWrite": 3.75, "cacheRead": 0.3 }
+}

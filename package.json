@@ -1,0 +1,23 @@
+{
+  "name": "account-plan-generator",
+  "version": "1.0.0",
+  "description": "Bilingual Account Intelligence Report Generator — local proxy + HTML front-end",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "docx": "^9.7.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "pptxgenjs": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

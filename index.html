@@ -1,0 +1,3071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Account Plan Generator · 账户计划生成器</title>
+<style>
+:root {
+  --navy:#0D1B3E; --navy-mid:#1E2F5C; --navy-light:#2D4278;
+  --amber:#D4860A; --amber-bg:#FEF3C7; --amber-text:#92400E;
+  --teal:#0369A1; --teal-bg:#E0F2FE; --teal-text:#0C4A6E;
+  --green:#15803D; --green-bg:#DCFCE7;
+  --red:#B91C1C; --red-bg:#FEE2E2;
+  --purple:#6D28D9; --purple-bg:#EDE9FE;
+  --white:#FFFFFF; --gray-50:#F8FAFC; --gray-100:#F1F5F9;
+  --gray-200:#E2E8F0; --gray-300:#CBD5E1; --gray-500:#64748B;
+  --gray-700:#334155; --gray-900:#0F172A;
+  --text-primary:#0F172A; --text-secondary:#334155; --text-muted:#475569;
+  --font:'Inter','Segoe UI',system-ui,sans-serif;
+  --radius:10px; --shadow:0 4px 12px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--gray-100);color:var(--text-primary);font-size:15px;line-height:1.6}
+.page{max-width:1160px;margin:0 auto;padding:0 24px 100px}
+
+/* INPUT STAGE */
+.input-stage{background:var(--navy);border-radius:0 0 20px 20px;padding:48px 44px 40px;margin-bottom:32px;position:relative;overflow:hidden}
+.input-stage::after{content:'';position:absolute;right:-100px;top:-100px;width:420px;height:420px;border-radius:50%;background:var(--navy-mid);z-index:0}
+.input-stage::before{content:'';position:absolute;right:-30px;top:-30px;width:280px;height:280px;border-radius:50%;background:var(--navy-light);z-index:0}
+.input-inner{position:relative;z-index:1}
+.app-tag{display:inline-flex;align-items:center;gap:6px;background:var(--amber);color:#7C2D12;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:4px;margin-bottom:16px}
+.input-stage h1{font-size:32px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px}
+.input-stage h1 .zh{display:block;font-size:20px;font-weight:600;color:#93C5FD;margin-top:2px}
+.subtitle{color:#94A3B8;font-size:13px;margin-bottom:28px;max-width:640px}
+.subtitle .zh{color:#7DD3FC;display:block;margin-top:3px}
+
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.field-group label{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#CBD5E1;margin-bottom:6px}
+.field-group label .zh-l{color:#7DD3FC;font-size:10px}
+.req{color:#FCA5A5}
+.opt-tag{font-size:9px;font-weight:600;background:rgba(255,255,255,.15);color:#CBD5E1;padding:2px 7px;border-radius:3px;text-transform:none;letter-spacing:0}
+.field-group input{width:100%;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.20);border-radius:8px;padding:11px 15px;font-size:14px;color:#fff;font-family:var(--font);outline:none;transition:border-color .2s,background .2s}
+.field-group input::placeholder{color:rgba(255,255,255,.35)}
+.field-group input:focus{border-color:#FCD34D;background:rgba(255,255,255,.14);box-shadow:0 0 0 3px rgba(252,211,77,.2)}
+
+.api-panel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;margin-bottom:22px}
+.api-panel-header{padding:13px 18px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;color:#93C5FD;user-select:none}
+.api-panel-header .chev{transition:transform .2s;font-size:10px}
+.api-panel-header.open .chev{transform:rotate(90deg)}
+.api-panel-body{display:none;padding:0 18px 18px}
+.api-panel-body.open{display:block}
+.api-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.api-row label{font-size:10px;color:#94A3B8;font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+.api-row input,.api-row select{width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:9px 12px;font-size:13px;color:#fff;font-family:var(--font);outline:none}
+.api-row input:focus,.api-row select:focus{border-color:#FCD34D}
+.api-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;margin-left:auto}
+.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.int-note{background:rgba(109,40,217,.2);border:1px solid rgba(167,139,250,.35);border-radius:8px;padding:11px 15px;font-size:12px;color:#C4B5FD;margin:10px 0}
+.int-note strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#A78BFA;margin-bottom:3px}
+
+.btn-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-gen{background:var(--amber);color:#7C2D12;border:none;border-radius:8px;padding:13px 30px;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:var(--font);transition:background .15s,transform .1s;box-shadow:0 4px 14px rgba(212,134,10,.35)}
+.btn-gen:hover{background:#F59E0B;transform:translateY(-1px)}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-demo{background:transparent;border:1.5px solid rgba(255,255,255,.25);color:#CBD5E1;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-demo:hover{border-color:#CBD5E1;color:#fff}
+
+/* PROGRESS */
+.prog-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 26px;margin-bottom:28px;display:none;box-shadow:var(--shadow)}
+.prog-wrap.show{display:block}
+.prog-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.prog-sub{font-size:12px;color:var(--text-muted);margin-bottom:14px}
+.prog-track{background:var(--gray-200);border-radius:4px;height:6px;margin-bottom:18px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),#38BDF8);border-radius:4px;transition:width .4s ease;width:0%}
+.step-list{display:flex;flex-direction:column;gap:7px}
+.step-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.step-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#fff}
+.si-pend{background:var(--gray-300);color:var(--gray-700)}
+.si-run{background:var(--amber);color:#7C2D12;animation:pulse .8s infinite}
+.si-done{background:var(--green)}
+.si-err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.step-lbl{flex:1;color:var(--text-muted)}
+.step-lbl.active{color:var(--text-primary);font-weight:600}
+.step-lbl.done{color:var(--green);font-weight:600}
+.step-lbl.error{color:var(--red)}
+.step-src{font-size:11px;color:var(--gray-500)}
+
+/* REPORT */
+#report{display:none}
+#report.show{display:block}
+
+/* RIBBON */
+.ribbon{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--teal-bg);border:1px solid #BAE6FD;border-radius:var(--radius);padding:12px 18px;margin-bottom:24px;font-size:13px;color:var(--teal-text)}
+.ribbon-btns{margin-left:auto;display:flex;gap:8px}
+.rbtn{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.04em}
+.b-live{background:var(--green-bg);color:var(--green)}
+.b-ai{background:var(--purple-bg);color:var(--purple)}
+.b-user{background:var(--amber-bg);color:var(--amber-text)}
+.b-manual{background:var(--teal-bg);color:var(--teal-text)}
+
+/* SECTIONS */
+.section{margin-bottom:26px}
+.section-header{background:var(--navy);color:#fff;padding:13px 22px;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;gap:10px}
+.sec-num{background:var(--amber);color:#7C2D12;font-size:10px;font-weight:800;padding:4px 10px;border-radius:4px;letter-spacing:.06em;flex-shrink:0}
+.sec-title{font-size:15px;font-weight:700}
+.sec-title .zh{display:block;font-size:11px;font-weight:500;color:#93C5FD;margin-top:1px}
+.sec-badges{margin-left:auto;display:flex;gap:6px}
+.sec-body{background:#fff;border:1px solid var(--gray-200);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:26px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+/* BILINGUAL BLOCK */
+.bi-block{border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.bi-block:last-child{margin-bottom:0}
+.bi-lang{display:grid;grid-template-columns:1fr 1fr}
+.bi-pane{padding:0}
+.bi-pane+.bi-pane{border-left:2px solid var(--gray-200);background:var(--gray-50)}
+.lang-bar{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:8px 14px;border-bottom:1px solid var(--gray-200);color:var(--text-muted);background:var(--gray-100)}
+.lang-bar.zh{background:#F0F7FF;color:var(--teal-text)}
+.bi-content{padding:12px 14px}
+
+/* EDITABLE */
+.editable{border:1.5px dashed var(--amber);border-radius:6px;padding:8px 12px;background:var(--amber-bg);font-size:13px;color:var(--text-primary);min-height:36px;outline:none;width:100%;font-family:var(--font);resize:vertical;transition:border-color .2s,background .2s,box-shadow .2s;line-height:1.6}
+.editable:focus{border-color:var(--teal);background:#F0F9FF;box-shadow:0 0 0 3px rgba(3,105,161,.12)}
+[contenteditable].editable:empty::before{content:attr(placeholder);color:var(--gray-500);font-style:italic}
+.editable.zh{background:#F0F7FF;border-color:var(--teal);color:var(--text-primary)}
+.editable.zh:focus{background:#E0F2FE;box-shadow:0 0 0 3px rgba(3,105,161,.15)}
+.fl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:5px;display:block}
+.f{margin-bottom:14px}
+.f:last-child{margin-bottom:0}
+
+/* LAYOUTS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-dark{background:var(--navy);border:1px solid var(--navy-light);border-radius:var(--radius);padding:18px}
+.card-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px}
+
+/* COVER */
+.cover{background:var(--navy);border-radius:var(--radius);padding:42px 46px;margin-bottom:26px;position:relative;overflow:hidden}
+.cover::after{content:'';position:absolute;right:-80px;top:-80px;width:340px;height:340px;border-radius:50%;background:var(--navy-mid);z-index:0}
+.cover::before{content:'';position:absolute;right:-20px;top:-20px;width:230px;height:230px;border-radius:50%;background:var(--navy-light);z-index:0}
+.cover-in{position:relative;z-index:1}
+.cover-tag{display:inline-block;background:var(--amber);color:#7C2D12;font-size:10px;font-weight:800;letter-spacing:.1em;padding:5px 14px;border-radius:4px;text-transform:uppercase;margin-bottom:14px}
+
+/* PROFILE TABLE */
+.prow{display:grid;grid-template-columns:130px 1fr;border-bottom:1px solid var(--gray-200);padding:8px 0;font-size:13px}
+.prow:last-child{border-bottom:none}
+.pkey{color:var(--text-muted);font-weight:600}
+
+/* SEGMENTS */
+.seg{display:flex;align-items:center;gap:13px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:11px 14px;margin-bottom:8px}
+.seg:last-child{margin-bottom:0}
+.seg-pct{min-width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0}
+.seg-n{font-weight:700;font-size:13px;color:var(--text-primary);margin-bottom:2px}
+.seg-d{font-size:11.5px;color:var(--text-muted)}
+
+/* KPI CARDS */
+.kpi{border-radius:var(--radius);padding:16px;text-align:center;color:#fff}
+.kpi-v{font-size:24px;font-weight:800;display:block;margin-bottom:3px}
+.kpi-l{font-size:12px;font-weight:600;opacity:.95}
+.kpi-s{font-size:10px;margin-top:2px;opacity:.75}
+
+/* PRIORITY BADGES */
+.pb{display:inline-block;font-size:9px;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase}
+.pb-high{background:var(--red);color:#fff}
+.pb-mh{background:#D97706;color:#fff}
+.pb-med{background:var(--teal);color:#fff}
+.pb-primary{background:var(--amber);color:#7C2D12}
+.pb-champion{background:var(--green);color:#fff}
+.pb-default{background:var(--gray-200);color:var(--gray-700)}
+
+/* NEWS */
+.ni{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--gray-200)}
+.ni:last-child{border-bottom:none}
+.ni-date{font-size:11px;color:var(--text-muted);min-width:74px;padding-top:2px;font-weight:600}
+.ni-h{font-weight:700;font-size:13px;color:var(--text-primary);margin-bottom:2px}
+.ni-src{font-size:10px;color:var(--teal);margin-top:2px;font-weight:600}
+
+/* COMPETITORS */
+.cg{display:grid;grid-template-columns:140px 1fr 1fr 88px;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-200);font-size:13px}
+.cg:last-child{border-bottom:none}
+.ch{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding-bottom:6px}
+.cn{font-weight:700;color:var(--navy)}
+
+/* PAIN CARDS */
+.pain-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);position:relative}
+.pain-b{position:absolute;top:12px;right:12px}
+.pain-t{font-weight:700;font-size:13px;color:var(--navy);padding-right:78px;margin-bottom:6px}
+
+/* VALUE CARDS */
+.vc{background:var(--navy-mid);border:1px solid var(--navy-light);border-radius:var(--radius);padding:18px}
+.vct{font-size:14px;font-weight:700;color:#FCD34D;margin-bottom:5px}
+.vcm{display:inline-block;background:var(--teal);color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:4px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.vcb{font-size:12px;color:#CBD5E1;line-height:1.6}
+.vcs{font-size:10px;color:#94A3B8;margin-top:8px;font-style:italic}
+
+/* STAKEHOLDERS */
+.shc{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);position:relative}
+.sha{width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;margin-right:10px;float:left;flex-shrink:0}
+.shn{font-weight:700;font-size:13px;color:var(--text-primary)}
+.sht{font-size:11px;color:var(--text-muted)}
+.shm{font-size:12px;color:var(--text-secondary);margin-top:10px;clear:both;line-height:1.5}
+.shb{position:absolute;top:12px;right:12px}
+
+/* PHASE CARDS */
+.phase-card{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.phase-h{padding:16px 18px}
+.phase-l{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.phase-p{font-size:11px;margin-bottom:3px}
+.phase-n{font-size:17px;font-weight:700}
+.phase-b{background:#fff;border:1px solid var(--gray-200);border-top:none;padding:14px 18px}
+.phase-a{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:12.5px;color:var(--text-secondary)}
+.phase-a:last-child{border-bottom:none}
+.phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* GOAL / QUOTE */
+.goal-bar{background:var(--navy);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:flex-start;gap:12px;margin-top:18px;color:#E2E8F0}
+.gi{font-size:20px;flex-shrink:0;margin-top:2px}
+.quote-box{background:var(--navy);border-radius:var(--radius);padding:12px 16px;margin-top:12px;font-style:italic;color:#FCD34D;font-size:13px;line-height:1.6}
+
+/* TECH NUMBERS */
+.num-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:16px}
+.num-tile{background:var(--navy-mid);border:1px solid var(--navy-light);border-radius:8px;padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.num-val{font-size:19px;font-weight:800;color:#FCD34D;line-height:1.25}
+.num-desc{font-size:12px;color:#CBD5E1;line-height:1.5;word-break:normal;overflow-wrap:break-word}
+.num-desc-zh{font-size:11px;color:#7DD3FC;line-height:1.5;margin-top:2px;word-break:normal;overflow-wrap:break-word}
+
+/* INTEGRATION POINT */
+.ipoint{background:var(--purple-bg);border:1.5px dashed #8B5CF6;border-radius:8px;padding:11px 14px;margin:12px 0;font-size:12px;color:var(--purple)}
+.ipoint strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;color:#5B21B6}
+
+/* PRINT */
+@media print{.input-stage,.prog-wrap,.ribbon-btns,.btn-row,.ipoint{display:none!important}#report{display:block!important}.sec-body{box-shadow:none;border:1px solid #ddd}.editable{border-style:solid;background:#fff!important}}
+
+/* PDF CAPTURE (html2canvas) */
+body.pdf-capture .input-stage,body.pdf-capture .prog-wrap,body.pdf-capture .ribbon-btns,body.pdf-capture .btn-row,body.pdf-capture .ipoint,body.pdf-capture .ppt-modal{display:none!important}
+body.pdf-capture .editable{border-color:transparent!important}
+
+/* RESPONSIVE */
+@media(max-width:780px){.fields-grid,.two-col,.three-col,.four-col,.bi-lang{grid-template-columns:1fr}.bi-pane+.bi-pane{border-left:none;border-top:2px solid var(--gray-200)}.input-stage{padding:28px 18px}.input-stage h1{font-size:24px}.sec-body{padding:16px}}
+
+/* PPT BUTTON */
+.btn-ppt{background:#1D6F42;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn-ppt:hover{background:#155233}
+.btn-ppt:disabled{opacity:.5;cursor:not-allowed}
+.ppt-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center}
+.ppt-modal.show{display:flex}
+.ppt-box{background:#fff;border-radius:14px;padding:32px 36px;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.ppt-box h2{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.ppt-box p{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+.ppt-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.ppt-opts-3{grid-template-columns:1fr 1fr 1fr}
+.export-notice{background:var(--purple-bg);border:1px dashed #8B5CF6;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--purple);line-height:1.6}
+.export-notice strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5B21B6;margin-bottom:3px}
+.ppt-opt{background:var(--gray-50);border:2px solid var(--gray-200);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s}
+.ppt-opt:hover,.ppt-opt.selected{border-color:var(--teal);background:var(--teal-bg)}
+.ppt-opt input{accent-color:var(--teal);margin-right:6px}
+.ppt-opt label{font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer}
+.ppt-opt span{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}
+.ppt-progress{background:var(--gray-100);border-radius:8px;padding:14px;margin-bottom:16px;display:none}
+.ppt-progress.show{display:block}
+.ppt-prog-bar{background:var(--gray-200);border-radius:4px;height:6px;margin-top:8px;overflow:hidden}
+.ppt-prog-fill{height:100%;background:linear-gradient(90deg,#1D6F42,#22C55E);border-radius:4px;transition:width .3s;width:0%}
+.ppt-btn-row{display:flex;gap:10px;justify-content:flex-end}
+.ppt-btn{border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.ppt-cancel{background:var(--gray-200);color:var(--gray-700)}
+.ppt-cancel:hover{background:var(--gray-300)}
+.ppt-go{background:#1D6F42;color:#fff}
+.ppt-go:hover{background:#155233}
+.ppt-go:disabled{opacity:.5;cursor:not-allowed}
+
+/* REPOSITORY MODAL */
+.repo-item{display:flex;align-items:flex-start;gap:10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 12px}
+.repo-item-main{flex:1;min-width:0}
+.repo-item-title{font-size:13px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.repo-target-link{color:var(--teal-text);font-weight:800;cursor:pointer;text-decoration:none;background:none;border:none;padding:0;font-family:var(--font);font-size:13px}
+.repo-target-link:hover{text-decoration:underline}
+.repo-ver{font-size:10px;font-weight:700;color:var(--teal-text);background:var(--teal-bg);border-radius:3px;padding:1px 6px}
+.repo-item-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:6px}
+.repo-field{font-size:11px;color:var(--text-secondary);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repo-field-label{font-weight:700;color:var(--text-muted);text-transform:uppercase;font-size:9.5px;letter-spacing:.04em;margin-right:5px}
+.repo-field a{color:var(--teal-text)}
+.repo-item-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+.repo-item-actions{display:flex;gap:6px;flex-shrink:0}
+.repo-btn{border:none;border-radius:6px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.repo-load{background:var(--teal);color:#fff}
+.repo-load:hover{background:var(--teal-text)}
+.repo-del{background:var(--red-bg);color:var(--red)}
+.repo-del:hover{background:#FCA5A5}
+.repo-empty{font-size:12px;color:var(--text-muted);text-align:center;padding:20px}
+.repo-error{font-size:12px;color:var(--red);text-align:center;padding:20px;background:var(--red-bg);border-radius:8px}
+
+/* ── SOURCE CITATIONS ── */
+.src-panel{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px 20px;margin-top:18px}
+.src-panel-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.src-list{display:flex;flex-direction:column;gap:6px}
+.src-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:8px 10px;border-radius:6px;background:#fff;border:1px solid var(--gray-200)}
+.src-item.primary{border-color:#BAE6FD;background:var(--teal-bg)}
+.src-item.secondary{border-color:var(--gray-200)}
+.src-item.unavailable{border-color:var(--red-bg);background:var(--red-bg);opacity:.85}
+.src-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.src-body{flex:1;min-width:0}
+.src-name{font-weight:700;color:var(--text-primary);margin-bottom:1px}
+.src-item.primary .src-name{color:var(--teal-text)}
+.src-item.unavailable .src-name{color:var(--red)}
+.src-url{font-size:11px;color:var(--teal);word-break:break-all;text-decoration:none}
+.src-url:hover{text-decoration:underline}
+.src-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;display:inline-block;margin-top:2px}
+.src-status.found{background:var(--green-bg);color:var(--green)}
+.src-status.partial{background:var(--amber-bg);color:var(--amber-text)}
+.src-status.unavailable{background:var(--red-bg);color:var(--red)}
+.src-excerpt{font-size:11px;color:var(--text-secondary);margin-top:3px;font-style:italic;line-height:1.45}
+.src-zh{font-size:11px;color:var(--teal-text);margin-top:2px}
+/* Data-unavailable callout */
+.data-na{background:var(--red-bg);border:1px solid #FCA5A5;border-radius:8px;padding:12px 16px;font-size:13px;color:var(--red);font-weight:600;display:flex;align-items:center;gap:8px;margin:8px 0}
+.data-na .icon{font-size:16px;flex-shrink:0}
+/* Source legend */
+.src-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:11px}
+.src-legend-item{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}
+.src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* Reliability indicator in section header */
+.rel-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em}
+.rel-high{background:var(--green-bg);color:var(--green)}
+.rel-med{background:var(--amber-bg);color:var(--amber-text)}
+.rel-low{background:var(--red-bg);color:var(--red)}
+.rel-na{background:var(--gray-200);color:var(--gray-700)}
+
+
+/* ════ OVERFLOW & WORD-WRAP FIXES ════ */
+*, *::before, *::after { box-sizing: border-box; }
+.sec-body, .card, .bi-content, .bi-pane, .shc, .pain-card, .vc, .phase-b, .phase-h,
+.seg, .ni, .cg, .src-panel, .src-item, .src-body {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
+  min-width: 0;
+}
+.two-col, .three-col, .four-col { min-width: 0; }
+.two-col > *, .three-col > *, .four-col > * { min-width: 0; overflow: hidden; }
+
+/* Editable fields — constrained and auto-expanding */
+.editable {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  overflow: hidden;
+  resize: none;
+}
+textarea.editable {
+  resize: vertical;
+  overflow: auto;
+  min-height: 36px;
+}
+[contenteditable].editable {
+  display: block;
+  min-height: 22px;
+  overflow: hidden;
+}
+
+/* Keep text inside KPI cards */
+.kpi { overflow: hidden; word-break: break-word; }
+.kpi-v { word-break: break-all; font-size: clamp(14px, 4vw, 26px); }
+
+/* Step-src column — prevent overflow */
+.step-src { min-width: 80px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.step-row { min-width: 0; }
+.step-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Source URL wrapping */
+.src-url { word-break: break-all; overflow-wrap: anywhere; }
+
+/* Phase action rows */
+.phase-a { min-width: 0; align-items: flex-start; }
+.phase-a > div { min-width: 0; flex: 1; }
+
+/* Pain card badges */
+.pain-b { position: absolute; top: 12px; right: 12px; white-space: nowrap; z-index: 1; }
+.pain-card { position: relative; overflow: hidden; }
+.pain-t { padding-right: 90px; }
+
+/* Stakeholder card */
+.sha { flex-shrink: 0; }
+.shb { white-space: nowrap; }
+.shc { overflow: hidden; }
+
+/* Retry button styling */
+.retry-btn:hover { background: #0C4A6E !important; }
+
+/* si-warn step state */
+.si-warn { background: #D97706; color: #fff; }
+.step-lbl.warn { color: #D97706; font-weight: 600; }
+
+
+/* ── Status icons ── */
+.si-warn { background:#D97706; color:#fff; }
+.step-lbl.warn { color:#D97706; font-weight:600; }
+.step-lbl.active { color:var(--text-primary); font-weight:600; }
+.step-lbl.done   { color:var(--green); font-weight:600; }
+.step-lbl.error  { color:var(--red); }
+
+/* ── Overflow / word-wrap ── */
+.sec-body,.card,.bi-content,.bi-pane,.shc,.pain-card,.vc,.phase-b,.phase-h,
+.seg,.ni,.cg,.src-panel,.src-item,.src-body,.kpi,.vc,.phase-card { word-wrap:break-word; overflow-wrap:anywhere; word-break:break-word; white-space:normal; max-width:100%; min-width:0; }
+.two-col,.three-col,.four-col { min-width:0; }
+.two-col > *,.three-col > *,.four-col > * { min-width:0; overflow:hidden; }
+.editable { width:100%; max-width:100%; box-sizing:border-box; word-wrap:break-word; overflow-wrap:anywhere; white-space:pre-wrap; overflow:hidden; resize:none; }
+textarea.editable { resize:vertical; overflow:auto; min-height:36px; }
+[contenteditable].editable { display:block; min-height:22px; overflow:hidden; }
+.kpi-v { word-break:break-all; font-size:clamp(14px,3vw,24px); }
+.step-src { max-width:200px; overflow:hidden; text-overflow:ellipsis; }
+.step-lbl { min-width:0; }
+.pain-b { position:absolute; top:12px; right:12px; white-space:nowrap; z-index:1; }
+.pain-card { position:relative; overflow:hidden; }
+.pain-t { padding-right:80px; }
+.sha { flex-shrink:0; }
+.shb { white-space:nowrap; }
+.phase-a > div { min-width:0; flex:1; }
+.src-url { word-break:break-all; }
+
+/* ── PPT button disabled state ── */
+.btn-ppt:disabled { opacity:.45; cursor:not-allowed; }
+
+
+/* ── Status styles ── */
+.si-warn{background:#D97706;color:#fff}.step-lbl.warn{color:#D97706;font-weight:600}
+.step-lbl.active{color:var(--text-primary);font-weight:600}.step-lbl.done{color:var(--green);font-weight:600}
+.step-lbl.error{color:var(--red)}
+/* ── Overflow / word-wrap ── */
+*,*::before,*::after{box-sizing:border-box}
+.sec-body,.card,.bi-content,.bi-pane,.shc,.pain-card,.vc,.phase-b,.phase-h,.seg,.ni,.cg,.src-panel,.src-item,.src-body,.kpi{word-wrap:break-word;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;min-width:0}
+.two-col,.three-col,.four-col{min-width:0}.two-col>*,.three-col>*,.four-col>*{min-width:0;overflow:hidden}
+.editable{width:100%;max-width:100%;box-sizing:border-box;word-wrap:break-word;overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;resize:none}
+textarea.editable{resize:vertical;overflow:auto;min-height:36px}
+[contenteditable].editable{display:block;min-height:22px;overflow:hidden}
+.kpi-v{word-break:break-all;font-size:clamp(14px,3vw,24px)}
+.step-src{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.step-lbl{min-width:0}.pain-b{position:absolute;top:12px;right:12px;white-space:nowrap;z-index:1}
+.pain-card{position:relative;overflow:hidden}.pain-t{padding-right:80px}
+.sha{flex-shrink:0}.shb{white-space:nowrap}.phase-a>div{min-width:0;flex:1}.src-url{word-break:break-all}
+.btn-ppt:disabled{opacity:.45;cursor:not-allowed}
+
+</style>
+<script src="/vendor/pptxgenjs/pptxgen.bundle.js"></script>
+<script src="/vendor/docx/index.iife.js"></script>
+<script src="/vendor/jspdf/jspdf.umd.min.js"></script>
+<script src="/vendor/html2canvas/html2canvas.min.js"></script>
+</head>
+<body>
+
+</head>
+<body>
+<div class="page">
+
+<!-- INPUT STAGE -->
+<div class="input-stage">
+  <div class="input-inner">
+    <div class="app-tag">⚡ Bilingual Account Plan Generator · 双语账户计划生成器</div>
+    <h1>Account Intelligence Report<span class="zh">账户情报报告生成器</span></h1>
+    <p class="subtitle">
+      Enter company details. The AI agent researches the target using live web search and generates a full bilingual account plan in English and Chinese.
+      <span class="zh">输入公司信息，AI代理将自动研究目标公司并生成完整中英双语账户计划。</span>
+    </p>
+
+    <div class="fields-grid">
+      <div class="field-group">
+        <label>Your Company Name <span class="zh-l">· 您的公司名称</span> <span class="req">*</span></label>
+        <input id="inp-seller" type="text" placeholder="e.g. Rockwell Automation" value="Skeqi"/>
+      </div>
+      <div class="field-group">
+        <label>Your Company Website <span class="zh-l">· 您的网站</span> <span class="opt-tag">Optional 可选</span></label>
+        <input id="inp-seller-url" type="text" placeholder="https://www.skeqi.com" value="https://www.skeqi.com"/>
+      </div>
+      <div class="field-group">
+        <label>Target Company Name <span class="zh-l">· 目标公司名称</span> <span class="req">*</span></label>
+        <input id="inp-target" type="text" placeholder="e.g. United Parcel Service · 联合包裹"/>
+      </div>
+      <div class="field-group">
+        <label>Target Company Website <span class="zh-l">· 目标网站</span> <span class="opt-tag">Optional 可选</span></label>
+        <input id="inp-target-url" type="text" placeholder="https://... (helps AI find correct company · 帮助AI识别正确公司)"/>
+      </div>
+    </div>
+
+    <div class="api-panel">
+      <div class="api-panel-header" id="apiToggle">
+        <span class="chev">▶</span>
+        🔌 API Configuration · API配置
+        <span class="api-status">
+          <span class="s-dot" id="sDot" style="background:var(--gray-500)"></span>
+          <span id="sTxt" style="color:#94A3B8;font-size:11px;font-weight:600">Not configured · 未配置</span>
+        </span>
+      </div>
+      <div class="api-panel-body" id="apiBody">
+        <p style="font-size:12px;color:#94A3B8;margin-bottom:12px">
+          Calls <strong style="color:#CBD5E1">Anthropic Claude API</strong> with web search. Key stays in your browser only.
+          <br><span style="color:#7DD3FC">调用Anthropic Claude API并启用网络搜索，密钥仅保存在浏览器中。</span>
+        </p>
+        <div class="api-row" id="serverStatusRow">
+          <div>
+            <label>Backend Server · 后端服务器</label>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.14);border-radius:8px">
+              <span id="srvDot" style="width:10px;height:10px;border-radius:50%;background:#64748B;flex-shrink:0"></span>
+              <div style="min-width:0">
+                <div id="srvTxt" style="font-size:12px;color:#94A3B8;font-weight:600">Checking… · 检查中…</div>
+                <div id="srvHint" style="font-size:11px;color:#64748B;margin-top:2px">Make sure <code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px">node server.js</code> is running · 确保后端服务已启动</div>
+              </div>
+              <button onclick="checkServer()" style="margin-left:auto;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">↺ Recheck</button>
+            </div>
+          </div>
+          <div>
+            <label>API Key · 密钥 <span style="font-size:10px;color:#94A3B8">(stored in .env on server · 存储在服务器.env中)</span></label>
+            <div style="padding:10px 12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.14);border-radius:8px;font-size:12px;color:#22C55E;font-weight:600">
+              🔒 API key is secure — stored in <code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px">.env</code> on the server, never sent to the browser
+              <span class="zh" style="display:block;font-size:11px;color:#4ADE80;margin-top:3px">密钥安全地存储在服务器.env文件中，不会发送到浏览器</span>
+            </div>
+          </div>
+        </div>
+        <div class="api-row">
+          <div>
+            <label>Backend URL · 后端地址</label>
+            <input id="inp-ep" type="text" value=""
+              style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:9px 12px;font-size:13px;color:#fff;font-family:inherit;outline:none"
+              placeholder="http://localhost:3000"/>
+            <div style="font-size:10px;color:#94A3B8;margin-top:4px">
+              Local server address — change only if running on a different port · 仅在不同端口时更改
+            </div>
+          </div>
+          <div>
+            <label>Web Search · 网络搜索</label>
+            <select id="inp-search" style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:9px 12px;font-size:12px;color:#fff;font-family:inherit;outline:none">
+              <option value="yes">Enabled — live research · 启用实时搜索</option>
+              <option value="no">Disabled — model knowledge only · 仅使用模型知识</option>
+            </select>
+          </div>
+        </div>
+        <div class="api-row">
+          <div><label>Model · 模型</label>
+            <select id="inp-model">
+              <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (recommended)</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 (most capable)</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001 (fastest)</option>
+            </select>
+          </div>
+          <div>
+            <label>Web Search · 网络搜索</label>
+            <select id="inp-search" style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:9px 12px;font-size:12px;color:#fff;font-family:inherit;outline:none">
+              <option value="yes">Enabled — live research · 启用实时搜索</option>
+              <option value="no">Disabled — model knowledge only · 仅使用模型知识</option>
+            </select>
+          </div>
+        </div>
+        
+        
+        
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-bottom:0">
+        <label style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)">Saved Targets · 已保存目标</label>
+        <div style="display:flex;gap:8px">
+          <select id="savedCompanies" onchange="loadSaved(this.value)" style="flex:1;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text-primary);font-family:var(--font);outline:none">
+            <option value="">— Select saved target · 选择已保存目标 —</option>
+          </select>
+          <button onclick="saveCompany()" style="background:var(--teal);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font)">💾 Save</button>
+        </div>
+      </div>
+      <div class="btn-row">
+      <button class="btn-gen" id="btnGen" onclick="generate()">
+        <span id="bIcon">🔍</span><span id="bTxt">Generate Bilingual Report · 生成双语报告</span>
+      </button>
+      <button class="btn-demo" onclick="openRepoModal()">📚 Repository · 报告库</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap" id="progWrap">
+  <div class="prog-title">Researching &amp; generating bilingual report… · 正在研究并生成双语报告…</div>
+  <div class="prog-sub" id="progSub">Initializing · 初始化</div>
+  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+  <div class="step-list" id="stepList"></div>
+</div>
+
+<!-- REPORT -->
+<div id="report">
+
+  <div class="ribbon">
+    <span style="font-size:18px">📋</span>
+    <span>
+      Bilingual report for <strong id="ribTarget"></strong> · 双语报告
+      &nbsp;·&nbsp;
+      <span class="badge b-live">● Live</span> web research &nbsp;
+      <span class="badge b-ai">✦ AI</span> generated &nbsp;
+      <span class="badge b-user">✎ You</span> entered &nbsp;
+      <span class="badge b-manual">✏ Editable</span>
+    </span>
+    <div class="ribbon-btns">
+      <button class="rbtn" onclick="window.print()">🖨 Print</button>
+      <button class="rbtn" id="btnSaveRepo" onclick="saveCurrentReport()" style="background:#0369A1">💾 Save to Repository · 保存到报告库</button>
+      <button class="rbtn" onclick="openRepoModal()">📚 Repository · 报告库</button>
+      <button class="btn-ppt" id="btnPpt" onclick="openExportModal()">📤 Export Report · 导出报告</button>
+      <button class="rbtn" onclick="generate(true)" style="background:var(--teal)" title="Force a fresh research pass, bypassing cached results · 强制重新研究，不使用缓存">🔄 Regenerate</button>
+    </div>
+  </div>
+
+  <!-- USAGE & COST -->
+  <div class="src-panel" id="usagePanel" style="margin-bottom:26px;display:none">
+    <div class="src-panel-title">💰 Report Generation Summary · 报告生成摘要 (estimated)</div>
+    <div id="usageStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px"></div>
+    <div id="usageSummary" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px"></div>
+    <div id="usageBreakdown" style="display:flex;flex-direction:column;gap:5px"></div>
+  </div>
+
+  <!-- COVER -->
+  <div class="cover" style="margin-bottom:26px">
+    <div class="cover-in">
+      <div class="cover-tag">Executive Account Plan · 高管账户计划</div>
+      <div id="r-cname" class="editable" contenteditable="true" style="font-size:38px;font-weight:800;color:#fff;background:rgba(212,134,10,.15);border-color:rgba(252,211,77,.4);min-height:50px;margin-bottom:4px"></div>
+      <div id="r-cname-zh" class="editable zh" contenteditable="true" style="font-size:22px;color:#93C5FD;background:rgba(3,105,161,.15);border-color:rgba(147,197,253,.4)"></div>
+      <div style="width:70px;height:3px;background:var(--amber);margin:16px 0;border-radius:2px"></div>
+      <div id="r-meta" class="editable" contenteditable="true" style="color:#94A3B8;font-size:13px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)"></div>
+      <div class="four-col" style="margin-top:24px" id="r-stats"></div>
+    </div>
+  </div>
+
+  <!-- 01 COMPANY OVERVIEW -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">01</span>
+      <div class="sec-title">Company Overview <span class="zh">公司概述</span></div>
+      <div class="sec-badges"><span class="badge b-live">● Live Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="two-col">
+        <div class="card"><div class="card-title">🏢 Company Profile · 公司档案</div><div id="r-prof"></div></div>
+        <div>
+          <div class="card-title">🏭 Business Segments · 业务分部</div>
+          <div id="r-segs"></div>
+          <div class="quote-box" id="r-quote" contenteditable="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 INDUSTRY & MARKET -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">02</span>
+      <div class="sec-title">Industry &amp; Market Context <span class="zh">行业与市场背景</span></div>
+      <div class="sec-badges"><span class="badge b-ai">✦ AI Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="two-col" style="margin-bottom:14px">
+        <div class="bi-block"><div class="bi-lang">
+          <div class="bi-pane"><div class="lang-bar">🇺🇸 Industry Overview</div><div class="bi-content"><div id="r-ind" class="editable" contenteditable="true" style="min-height:70px"></div></div></div>
+          <div class="bi-pane"><div class="lang-bar zh">🇨🇳 行业概述</div><div class="bi-content"><div id="r-ind-zh" class="editable zh" contenteditable="true" style="min-height:70px"></div></div></div>
+        </div></div>
+        <div class="bi-block"><div class="bi-lang">
+          <div class="bi-pane"><div class="lang-bar">🇺🇸 Market Size &amp; Growth</div><div class="bi-content"><div id="r-mkt" class="editable" contenteditable="true" style="min-height:70px"></div></div></div>
+          <div class="bi-pane"><div class="lang-bar zh">🇨🇳 市场规模与增长</div><div class="bi-content"><div id="r-mkt-zh" class="editable zh" contenteditable="true" style="min-height:70px"></div></div></div>
+        </div></div>
+      </div>
+      <div class="bi-block"><div class="bi-lang">
+        <div class="bi-pane"><div class="lang-bar">🇺🇸 Key Market Trends</div><div class="bi-content"><div id="r-trd" class="editable" contenteditable="true" style="min-height:80px"></div></div></div>
+        <div class="bi-pane"><div class="lang-bar zh">🇨🇳 关键市场趋势</div><div class="bi-content"><div id="r-trd-zh" class="editable zh" contenteditable="true" style="min-height:80px"></div></div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 03 RECENT NEWS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">03</span>
+      <div class="sec-title">Recent News &amp; Developments <span class="zh">近期新闻与动态</span></div>
+      <div class="sec-badges"><span class="badge b-live">● Live Search</span></div>
+    </div>
+    <div class="sec-body">
+      <div id="r-news"></div>
+      <div class="ipoint"><strong>🔌 Integration Point · 集成点: News Feed API</strong>Augment with NewsAPI or Google News RSS for higher freshness. Inject into <code>#r-news</code>.</div>
+    </div>
+  </div>
+
+  <!-- 04 FINANCIAL -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">04</span>
+      <div class="sec-title">Financial Snapshot <span class="zh">财务概况</span></div>
+      <div class="sec-badges"><span class="badge b-live">● Live Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="four-col" id="r-kpis" style="margin-bottom:20px"></div>
+      <div class="bi-block"><div class="bi-lang">
+        <div class="bi-pane"><div class="lang-bar">🇺🇸 Financial Analysis</div><div class="bi-content"><div id="r-fin" class="editable" contenteditable="true" style="min-height:80px"></div></div></div>
+        <div class="bi-pane"><div class="lang-bar zh">🇨🇳 财务分析</div><div class="bi-content"><div id="r-fin-zh" class="editable zh" contenteditable="true" style="min-height:80px"></div></div></div>
+      </div></div>
+      <div class="ipoint"><strong>🔌 Integration Point · 集成点: Financial Data API</strong>Connect Alpha Vantage or Yahoo Finance for live stock/revenue data. Inject into <code>#r-kpis</code> using <code>buildKpi()</code>.</div>
+    </div>
+  </div>
+
+  <!-- 05 COMPETITIVE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">05</span>
+      <div class="sec-title">Competitive Landscape <span class="zh">竞争格局</span></div>
+      <div class="sec-badges"><span class="badge b-ai">✦ AI Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div style="display:grid;grid-template-columns:140px 1fr 1fr 88px;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--gray-200);margin-bottom:4px">
+        <div class="ch">Competitor · 竞争对手</div><div class="ch">Strengths · 优势</div><div class="ch">Our Advantage · 我方优势</div><div class="ch">Threat · 威胁</div>
+      </div>
+      <div id="r-comps"></div>
+      <div class="bi-block" style="margin-top:14px"><div class="bi-lang">
+        <div class="bi-pane"><div class="lang-bar">🇺🇸 Our Differentiation</div><div class="bi-content"><div id="r-diff" class="editable" contenteditable="true" style="min-height:60px"></div></div></div>
+        <div class="bi-pane"><div class="lang-bar zh">🇨🇳 我们的差异化优势</div><div class="bi-content"><div id="r-diff-zh" class="editable zh" contenteditable="true" style="min-height:60px"></div></div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 06 STRATEGIC PRIORITIES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">06</span>
+      <div class="sec-title">Business Priorities <span class="zh">业务重点与战略议程</span></div>
+      <div class="sec-badges"><span class="badge b-live">● Live Research</span></div>
+    </div>
+    <div class="sec-body"><div id="r-pris"></div></div>
+  </div>
+
+  <!-- 07 TECH SIGNALS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">07</span>
+      <div class="sec-title">Technology &amp; Automation Signals <span class="zh">技术与自动化信号</span></div>
+      <div class="sec-badges"><span class="badge b-live">● Live Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="card-title" style="margin-bottom:10px">📊 Program Numbers · 项目数据</div>
+      <div class="card-dark num-grid" style="border-radius:var(--radius);margin-bottom:18px" id="r-tnums"></div>
+
+      <div class="card-title" style="margin-bottom:10px">🔧 Active Investments · 当前投资</div>
+      <div id="r-tinv" style="margin-bottom:14px"></div>
+
+      <div class="bi-block"><div class="bi-lang">
+        <div class="bi-pane"><div class="lang-bar">🇺🇸 Buying Signals &amp; Timing Triggers</div><div class="bi-content"><div id="r-sig" class="editable" contenteditable="true" style="min-height:70px"></div></div></div>
+        <div class="bi-pane"><div class="lang-bar zh">🇨🇳 购买信号与时机触发点</div><div class="bi-content"><div id="r-sig-zh" class="editable zh" contenteditable="true" style="min-height:70px"></div></div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 08 PAIN POINTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">08</span>
+      <div class="sec-title">Pain Points &amp; Challenges <span class="zh">痛点与挑战</span></div>
+      <div class="sec-badges"><span class="badge b-ai">✦ AI Research</span></div>
+    </div>
+    <div class="sec-body"><div class="three-col" id="r-pains"></div></div>
+  </div>
+
+  <!-- 09 VALUE PROPOSITION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">09</span>
+      <div class="sec-title" id="r-vptitle">Value Proposition <span class="zh">价值主张</span></div>
+      <div class="sec-badges"><span class="badge b-user">✎ Seller Context</span></div>
+    </div>
+    <div class="sec-body" style="background:var(--navy)"><div class="two-col" id="r-vps"></div></div>
+  </div>
+
+  <!-- 10 STAKEHOLDERS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">10</span>
+      <div class="sec-title">Stakeholder Map <span class="zh">利益相关者地图</span></div>
+      <div class="sec-badges"><span class="badge b-ai">✦ AI Research</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="ribbon" style="margin-bottom:14px"><span style="font-size:16px">⚠️</span><span>Inferred from public sources — verify before outreach · 来自公开信息，外联前请核实</span></div>
+      <div class="three-col" id="r-shs"></div>
+    </div>
+  </div>
+
+  <!-- 11 NEXT STEPS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">11</span>
+      <div class="sec-title">Recommended Next Steps <span class="zh">建议后续行动</span></div>
+      <div class="sec-badges"><span class="badge b-ai">✦ AI Generated</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="three-col" id="r-phases"></div>
+      <div class="goal-bar">
+        <span class="gi">🎯</span>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94A3B8;margin-bottom:6px">Account Goal · 账户目标</div>
+          <div id="r-goal" class="editable" contenteditable="true" style="background:rgba(255,255,255,.1);border-color:rgba(252,211,77,.4);color:#E2E8F0;margin-bottom:6px"></div>
+          <div id="r-goal-zh" class="editable zh" contenteditable="true" style="background:rgba(3,105,161,.2);border-color:rgba(147,197,253,.4);color:#BAE6FD"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 OPEN QUESTIONS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sec-num">12</span>
+      <div class="sec-title">Open Questions &amp; Discovery Gaps <span class="zh">待解问题与调研空白</span></div>
+      <div class="sec-badges"><span class="badge b-user">✎ For You</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="bi-block"><div class="bi-lang">
+        <div class="bi-pane">
+          <div class="lang-bar">🇺🇸 English</div>
+          <div class="bi-content">
+            <span class="fl">Discovery Questions</span>
+            <div id="r-qs" class="editable" contenteditable="true" style="min-height:90px"></div>
+            <div style="margin-top:12px"><span class="fl">Internal Account Team</span>
+            <textarea class="editable" style="min-height:65px">Account Executive: [Name]
+Solutions Engineer: [Name]
+Executive Sponsor: [Name]</textarea></div>
+          </div>
+        </div>
+        <div class="bi-pane">
+          <div class="lang-bar zh">🇨🇳 中文</div>
+          <div class="bi-content">
+            <span class="fl">调研问题</span>
+            <div id="r-qs-zh" class="editable zh" contenteditable="true" style="min-height:90px"></div>
+            <div style="margin-top:12px"><span class="fl">内部客户团队</span>
+            <textarea class="editable zh" style="min-height:65px">客户经理：[姓名]
+解决方案工程师：[姓名]
+执行赞助人：[姓名]</textarea></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 13 SOURCE CITATIONS -->
+  <div class="section" id="citationsSection" style="display:none">
+    <div class="section-header">
+      <span class="sec-num">📚</span>
+      <div class="sec-title">Source Citations &amp; Data Reliability <span class="zh">来源引用与数据可靠性</span></div>
+      <div class="sec-badges"><span class="badge b-manual">Verified</span></div>
+    </div>
+    <div class="sec-body">
+      <div class="src-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:11px">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Primary · 主要</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block"></span>Secondary · 次要</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber-text);display:inline-block"></span>Partial · 部分</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></span>Unavailable · 不可用</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block"></span>AI-inferred · AI推断</span>
+      </div>
+      <div id="r-citations"></div>
+    </div>
+  </div>
+
+<!-- EXPORT MODAL -->
+<div class="ppt-modal" id="pptModal">
+  <div class="ppt-box">
+    <h2>📤 Export Report · 导出报告</h2>
+    <p>Choose a format. PowerPoint and PDF are best for presentations and handouts; Word handles long-form bilingual content most naturally and avoids slide-size limits.<br>
+    <span style="color:var(--teal-text);font-size:12px">选择导出格式。PowerPoint和PDF适合演示与分发；Word能更自然地呈现长文本双语内容，不受幻灯片尺寸限制。</span></p>
+
+    <div class="ppt-opts ppt-opts-3">
+      <div class="ppt-opt selected" onclick="selectExportFormat('pptx',this)">
+        <input type="radio" name="exportFormat" id="fmtPptx" value="pptx" checked>
+        <label for="fmtPptx">📊 PowerPoint</label>
+        <span>.pptx · Slide deck · 幻灯片</span>
+      </div>
+      <div class="ppt-opt" onclick="selectExportFormat('docx',this)">
+        <input type="radio" name="exportFormat" id="fmtDocx" value="docx">
+        <label for="fmtDocx">📝 Word</label>
+        <span>.docx · Long-form · 长文档（推荐）</span>
+      </div>
+      <div class="ppt-opt" onclick="selectExportFormat('pdf',this)">
+        <input type="radio" name="exportFormat" id="fmtPdf" value="pdf">
+        <label for="fmtPdf">📄 PDF</label>
+        <span>.pdf · Print/share · 打印与分享</span>
+      </div>
+    </div>
+
+    <div id="exportUsageSummary" style="display:none;margin-bottom:14px"></div>
+
+    <div id="exportNotice" style="display:none;margin-bottom:14px"></div>
+
+    <div id="pptxModeRow">
+      <div class="ppt-opts">
+        <div class="ppt-opt selected" onclick="selectPptMode('browser',this)">
+          <input type="radio" name="pptMode" id="modeBrowser" value="browser" checked>
+          <label for="modeBrowser">🌐 Browser Export</label>
+          <span>PptxGenJS · No server needed · 无需服务器</span>
+        </div>
+        <div class="ppt-opt" onclick="selectPptMode('backend',this)">
+          <input type="radio" name="pptMode" id="modeBackend" value="backend">
+          <label for="modeBackend">⚙️ Backend API</label>
+          <span>Custom template · Richer layout · 自定义模板</span>
+        </div>
+      </div>
+
+      <div id="backendUrlRow" style="display:none;margin-bottom:14px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:block;margin-bottom:5px">Backend PPT Endpoint · 后端接口地址</label>
+        <input id="pptEndpoint" type="text" placeholder="https://yourapi.com/generate-ppt" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text-primary);font-family:var(--font);outline:none"/>
+        <div style="margin-top:8px;background:var(--purple-bg);border:1px dashed #8B5CF6;border-radius:6px;padding:10px 12px;font-size:11px;color:var(--purple)">
+          <strong style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5B21B6;margin-bottom:3px">🔌 Integration Point · 集成点</strong>
+          POST <code>{ reportData, language:"bilingual", template:"executive" }</code> → your backend generates PPTX and returns it as a binary download. Payload shape is logged to console on export.
+        </div>
+      </div>
+    </div>
+
+    <div class="ppt-progress" id="pptProgress">
+        <div style="font-size:13px;font-weight:700;color:var(--navy)" id="pptProgLabel">Building slides… · 正在生成幻灯片…</div>
+        <div class="ppt-prog-bar"><div class="ppt-prog-fill" id="pptProgFill"></div></div>
+      </div>
+
+      <div class="ppt-btn-row">
+        <button class="ppt-btn ppt-cancel" onclick="closePptModal()">Cancel · 取消</button>
+        <button class="ppt-btn ppt-go" id="pptGoBtn" onclick="startPptExport()">📥 Generate &amp; Download · 生成并下载</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT REPOSITORY MODAL -->
+<div class="ppt-modal" id="repoModal">
+  <div class="ppt-box" style="max-width:780px">
+    <h2>📚 Report Repository · 报告库</h2>
+    <p>Search and reload previously generated reports by account name, company name, website, or seller — build a growing knowledge base instead of recreating reports.<br>
+    <span style="color:var(--teal-text);font-size:12px">按账户名称、公司名称、网址或销售方搜索并重新加载已生成的报告，构建可持续更新的知识库。</span></p>
+
+    <div style="margin-bottom:14px">
+      <input id="repoSearch" type="text" placeholder="Search by name, company, URL… · 按名称、公司、网址搜索…" oninput="searchRepo()" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text-primary);font-family:var(--font);outline:none"/>
+    </div>
+
+    <div id="repoLoadError" class="repo-error" style="display:none;margin-bottom:12px"></div>
+
+    <div id="repoList" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+
+    <div class="ppt-btn-row">
+      <button class="ppt-btn ppt-cancel" onclick="closeRepoModal()">Close · 关闭</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+/* Account Plan Generator — Front-End Engine v2.0
+   API key lives on the server. Browser calls localhost:3000 only.
+*/
+const STEPS=[
+  {id:'s1',label:'Company overview & profile · 公司概述',             src:'Live research'},
+  {id:'s2',label:'Financial data (Yahoo Finance / SEC / IR) · 财务数据',src:'Live research'},
+  {id:'s3',label:'Strategy & technology · 战略与技术',                src:'Live research'},
+  {id:'s4',label:'Recent news & press releases · 近期新闻',           src:'Live research'},
+  {id:'s5',label:'Competitive landscape & pain points · 竞争与痛点',  src:'AI analysis'},
+  {id:'s6',label:'Stakeholders & next steps · 利益相关者',            src:'AI generation'},
+];
+let _stepStatus={},_currentData=null,_pptData=null;
+
+/* ════ UI ════ */
+function checkServer() {
+  const base=getBase(),dot=document.getElementById('srvDot'),txt=document.getElementById('srvTxt'),hint=document.getElementById('srvHint');
+  if(dot)dot.style.background='#F59E0B';
+  if(txt){txt.textContent='Checking… · 检查中…';txt.style.color='#94A3B8';}
+  fetch(base+'/health').then(r=>r.json()).then(d=>{
+    if(dot)dot.style.background='#22C55E';
+    if(txt){txt.textContent=`Connected · 已连接  —  model: ${d.model}`;txt.style.color='#22C55E';}
+    if(hint)hint.textContent=d.hasKey?`✅ API key loaded (${d.keyHint}) · 密钥已加载`:'❌ ANTHROPIC_API_KEY not set in .env · 请在.env中设置密钥';
+  }).catch(()=>{
+    if(dot)dot.style.background='#EF4444';
+    if(txt){txt.textContent='Server not reachable · 服务器无法连接';txt.style.color='#EF4444';}
+    if(hint)hint.textContent='Run: node server.js  then click ↺ Recheck · 运行 node server.js 后点击重新检查';
+  });
+}
+function getBase(){
+  const v=(document.getElementById('inp-ep')||{}).value;
+  if(v) return v.replace(/\/+$/,'');
+  const origin=window.location.origin;
+  return ((origin && origin.startsWith('http')) ? origin : 'http://localhost:3000').replace(/\/+$/,'');
+}
+function slugify(s){return String(s||'').trim().toLowerCase().replace(/[^a-z0-9一-鿿]+/g,'-').replace(/^-+|-+$/g,'')||'na';}
+
+/* ════ RESEARCH CACHE ════ */
+async function fetchResearchCache(type, key) {
+  try {
+    const r = await fetch(`${getBase()}/api/research-cache/${type}/${encodeURIComponent(key)}`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { console.warn('[cache] lookup failed:', e.message); return null; }
+}
+async function saveResearchCache(type, key, data, costUSD) {
+  try {
+    await fetch(`${getBase()}/api/research-cache/${type}/${encodeURIComponent(key)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ data, costUSD: costUSD||0 }),
+    });
+  } catch(e) { console.warn('[cache] save failed:', e.message); }
+}
+const LS_KEY='acctPlan_savedCompanies';
+function loadSavedCompanies(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(_){return[];}}
+function saveCompany(){
+  const name=document.getElementById('inp-target').value.trim(),url=document.getElementById('inp-target-url').value.trim();
+  if(!name)return;
+  const list=loadSavedCompanies().filter(c=>c.name!==name);
+  list.unshift({name,url,saved:Date.now()});
+  localStorage.setItem(LS_KEY,JSON.stringify(list.slice(0,20)));
+  renderSavedDropdown();
+}
+function renderSavedDropdown(){
+  const list=loadSavedCompanies(),sel=document.getElementById('savedCompanies');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Saved targets · 已保存目标 —</option>'+list.map(c=>`<option value="${esc(c.name)}|${esc(c.url)}">${esc(c.name)}</option>`).join('');
+}
+function loadSaved(val){
+  if(!val)return;
+  const[name,url]=val.split('|');
+  document.getElementById('inp-target').value=name||'';
+  document.getElementById('inp-target-url').value=url||'';
+  document.getElementById('savedCompanies').value='';
+}
+
+/* ════ PROGRESS ════ */
+function initSteps(){
+  const list=document.getElementById('stepList');if(!list)return;
+  list.innerHTML='';_stepStatus={};
+  STEPS.forEach(s=>{
+    const row=document.createElement('div');row.className='step-row';row.id=s.id;
+    row.innerHTML=`<div class="step-icon si-pend" id="${s.id}-i">—</div><div class="step-lbl" id="${s.id}-l">${s.label}</div><div class="step-src" id="${s.id}-src">${s.src}</div>`;
+    list.appendChild(row);
+  });
+}
+function setStepUI(id,state,note){
+  const ic=document.getElementById(id+'-i'),lb=document.getElementById(id+'-l'),sr=document.getElementById(id+'-src');
+  if(!ic)return;ic.className='step-icon';
+  if(state==='run'){ic.className+=' si-run';ic.textContent='●';lb.className='step-lbl active';}
+  if(state==='done'){ic.className+=' si-done';ic.textContent='✓';lb.className='step-lbl done';}
+  if(state==='fallback'){ic.className+=' si-warn';ic.textContent='!';lb.className='step-lbl warn';
+    if(sr){sr.style.color='#D97706';sr.style.fontWeight='600';sr.textContent='Fallback · 备用内容'+(note?' — '+shortErr(note):'');sr.title=note||'';}}
+  if(state==='err'){ic.className+=' si-err';ic.textContent='✕';lb.className='step-lbl error';
+    if(sr&&note){sr.style.color='#B91C1C';sr.style.fontWeight='600';sr.textContent='⚠ '+shortErr(note);}}
+  _stepStatus[id]=state;
+}
+function shortErr(msg){
+  if(!msg)return'error';
+  if(msg.includes('401'))return'Auth error (401)';
+  if(msg.includes('429'))return'Rate limit (429)';
+  if(msg.includes('overload'))return'API overloaded';
+  if(msg.includes('JSON')||msg.includes('parse'))return'Parse error';
+  if(msg.includes('ECONNREFUSED')||msg.includes('Failed'))return'Server not reachable';
+  return msg.slice(0,45);
+}
+function setProg(pct,sub,color){
+  const fill=document.getElementById('progFill'),el=document.getElementById('progSub');
+  if(fill)fill.style.width=pct+'%';if(el&&sub)el.textContent=sub;if(el&&color)el.style.color=color;
+}
+function clearError(){const b=document.getElementById('genErrorBanner');if(b)b.remove();}
+function showBanner(html_content,bg,border,textColor){
+  clearError();const wrap=document.getElementById('progWrap');if(!wrap)return;
+  const banner=document.createElement('div');banner.id='genErrorBanner';
+  banner.style.cssText=`margin-top:14px;background:${bg};border:1px solid ${border};border-radius:8px;padding:14px 16px;font-size:13px;color:${textColor}`;
+  banner.innerHTML=html_content;wrap.appendChild(banner);
+}
+function addRetryBtn(stepId,retryFn){
+  const sr=document.getElementById(stepId+'-src');if(!sr)return;
+  const old=document.getElementById('retry-'+stepId);if(old)old.remove();
+  const btn=document.createElement('button');btn.id='retry-'+stepId;btn.textContent='↺ Retry';
+  btn.style.cssText='margin-left:6px;background:#0369A1;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit';
+  btn.onclick=retryFn;sr.appendChild(btn);
+}
+function addRetryAllBtn(fn){
+  const wrap=document.getElementById('progWrap'),old=document.getElementById('retryAllBtn');if(old)old.remove();
+  const btn=document.createElement('button');btn.id='retryAllBtn';
+  btn.style.cssText='margin-top:12px;background:#D4860A;color:#7C2D12;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;display:block;width:100%';
+  btn.textContent='↺ Retry Failed Sections · 重试失败的部分';btn.onclick=fn;wrap.appendChild(btn);
+}
+
+/* ════ BACKEND ════ */
+async function callStep(prompt,useSearch){
+  const base=getBase(),search=(document.getElementById('inp-search')||{}).value==='yes'&&useSearch,
+        model=(document.getElementById('inp-model')||{}).value||'claude-sonnet-4-6';
+  console.log(`[callStep] model=${model} useSearch=${search} promptLen=${prompt.length}`);
+  const resp=await fetch(base+'/api/research',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,useSearch:search,model})});
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error||`Server error ${resp.status}`);}
+  const data=await resp.json();
+  if(!data.ok)throw new Error(data.error||'Unknown server error');
+  console.log(`[callStep] ✅ text length: ${data.text.length} · tokens in/out: ${data.usage?.inputTokens||0}/${data.usage?.outputTokens||0} · cost≈$${(data.costUSD||0).toFixed(4)}`);
+  return data; // { ok, text, usage, apiCalls, model, costUSD }
+}
+async function testConn(){
+  try{const base=getBase(),r=await fetch(base+'/api/test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();if(d.ok)alert('✅ '+d.text);else alert('❌ '+d.error);}
+  catch(e){alert('❌ Server not reachable: '+e.message);}
+}
+// Escape stray unescaped " inside JSON string values (e.g. Chinese text quoting a
+// term with straight double-quotes: 为"特斯拉"). Tracks object/array nesting so it
+// knows whether a string is a key (ends only at ":") or a value (ends at , } ]).
+function repairJSON(s){
+  let out='',inStr=false,esc=false,isKeyStr=false,awaitingKey=false;
+  const stack=[];
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      if(esc){out+=c;esc=false;continue;}
+      if(c==='\\'){out+=c;esc=true;continue;}
+      if(c==='"'){
+        let j=i+1; while(j<s.length&&/\s/.test(s[j]))j++;
+        const next=s[j];
+        const isEnd = isKeyStr
+          ? (next===':'||next===undefined)
+          : (next===undefined||',}]'.includes(next));
+        if(isEnd){inStr=false;out+=c;if(isKeyStr)awaitingKey=false;}
+        else out+='\\"';
+        continue;
+      }
+      out+=c;
+      continue;
+    }
+    out+=c;
+    switch(c){
+      case '{': stack.push('obj'); awaitingKey=true; break;
+      case '[': stack.push('arr'); break;
+      case '}': case ']': stack.pop(); break;
+      case ',': if(stack[stack.length-1]==='obj') awaitingKey=true; break;
+      case ':': awaitingKey=false; break;
+      case '"': inStr=true; isKeyStr=(stack[stack.length-1]==='obj'&&awaitingKey); break;
+    }
+  }
+  return out;
+}
+function pJSON(txt){
+  if(!txt||!txt.trim())throw new Error('Empty response from server');
+  let clean=txt.replace(/```json[\s\S]*?```/g,m=>m.slice(m.indexOf('\n')+1,m.lastIndexOf('```'))).replace(/```json|```/g,'').trim();
+  const f=clean.indexOf('{'),l=clean.lastIndexOf('}');
+  if(f===-1||l===-1){console.error('[pJSON] raw:',txt.slice(0,400));throw new Error('No JSON in response. Check server logs.');}
+  clean=clean.slice(f,l+1);
+  try{return JSON.parse(clean);}
+  catch(e){
+    try{return JSON.parse(repairJSON(clean));}
+    catch(e2){console.error('[pJSON] fail:',e.message,clean.slice(0,400));throw new Error('JSON parse: '+e.message);}
+  }
+}
+
+/* ════ PROMPTS ════ */
+function P_overview(target, turl, seller, surl) {
+  return `You are a bilingual B2B research analyst. Research "${target}" (website: ${turl||'search for it'}). Seller: "${seller}" (${surl||'N/A'}).
+Use web search. For unverifiable fields use exactly: "Data not available". Never invent figures.
+Return ONLY valid JSON, no markdown fences:
+{"companyName":"official EN name","companyNameZh":"官方中文名","ticker":"e.g. SZ:300750 or blank",
+"profile":{"founded":"year & city","foundedZh":"成立","headquarters":"city, country","headquartersZh":"总部","ceo":"name","ceoZh":"CEO","employees":"~N,000 (YYYY)","employeesZh":"员工","revenue":"$XB (FY20XX)","revenueZh":"营收","countries":"60+ countries","countriesZh":"运营范围","website":"${turl||''}"},
+"segments":[{"pct":"~X%","name":"segment","nameZh":"分部","desc":"one sentence","descZh":"一句话"}],
+"quote":"CEO quote or tagline","quoteZh":"语录",
+"stats":[{"value":"figure","label":"metric EN","labelZh":"指标"}],
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary|ai-inferred","status":"found|partial|unavailable","excerpt":"what came from here","excerptZh":"来源说明"}],
+"dataReliability":"high|medium|low","reliabilityNote":"note EN","reliabilityNoteZh":"说明"}
+3-4 segments, 4 stats. PURE JSON ONLY.`;}
+
+function P_financials(target, turl) {
+  return `Research financials for "${target}" (${turl||''}). Sources: company IR → Yahoo Finance → SEC EDGAR 10-K → press releases.
+Use "Data not available" for unverifiable. Return ONLY valid JSON, no markdown:
+{"kpis":[{"value":"figure","label":"EN","labelZh":"中文","sub":"FY period","subZh":"财年","color":"#hex","sourceName":"source","sourceUrl":"URL or N/A"}],
+"context":"2-3 sentence financial narrative (EN)","contextZh":"财务分析（中文）",
+"industry":"industry (EN)","industryZh":"行业","market":"size+growth with source","marketZh":"市场规模",
+"trends":"3-4 trends plain text EN","trendsZh":"趋势中文",
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary|ai-inferred","status":"found|partial|unavailable","excerpt":"what came from here","excerptZh":"来源说明"}],
+"dataReliability":"high|medium|low","reliabilityNote":"note","reliabilityNoteZh":"说明"}
+Colors: #0D1B3E #0369A1 #1E2F5C #D4860A. 4 KPIs. PURE JSON ONLY.`;}
+
+function P_strategy(target, turl) {
+  return `Research "${target}" (${turl||''}) strategic priorities and technology investments.
+Sources: website → annual report/10-K → earnings transcripts → press releases → industry news.
+Mark inferred [AI-inferred]. Return ONLY valid JSON:
+{"priorities":[{"title":"EN","titleZh":"中文","body":"2-3 sentences (EN)","bodyZh":"中文","sourceName":"source","sourceUrl":"URL or N/A","confidence":"high|medium|low"}],
+"techNumbers":[{"value":"figure","desc":"EN","descZh":"中文","sourceName":"source","sourceUrl":"URL or N/A"}],
+"techInvestments":[{"category":"EN","categoryZh":"中文","items":["EN"],"itemsZh":["中文"]}],
+"signals":"buying signals (EN)","signalsZh":"购买信号",
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary|ai-inferred","status":"found|partial|unavailable","excerpt":"what","excerptZh":"说明"}],
+"dataReliability":"high|medium|low","reliabilityNote":"note","reliabilityNoteZh":"说明"}
+4 priorities, 5 tech numbers, 3 tech categories. PURE JSON ONLY.`;}
+
+function P_news(target, turl) {
+  return `Find recent significant news about "${target}" (${turl||''}) from the past 6 months.
+Sources: company press page → Reuters/Bloomberg/WSJ → Google News → SEC 8-K.
+NEVER fabricate. Return ONLY valid JSON:
+{"news":[{"date":"Month YYYY","headline":"EN","headlineZh":"中文","summary":"1-2 sentences EN","summaryZh":"中文","source":"publication","sourceUrl":"URL or N/A","category":"earnings|strategy|technology|leadership|partnership|regulatory|other","verified":true}],
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary","status":"found|partial|unavailable","excerpt":"found","excerptZh":"说明"}]}
+PURE JSON ONLY. Do not fabricate.`;}
+
+function P_competitive(target, seller, turl) {
+  return `Analyze "${target}" (${turl||''}) from "${seller}" account team perspective.
+Research: website → 10-K risk section → LinkedIn → industry news. Mark inferred [AI-inferred].
+Return ONLY valid JSON:
+{"competitors":[{"name":"competitor","strengths":"EN","strengthsZh":"中文","advantage":"where ${seller} wins EN","advantageZh":"中文","threat":"HIGH|MEDIUM|LOW","sourceNote":"basis"}],
+"differentiation":"2-3 sentences EN","differentiationZh":"中文",
+"pains":[{"title":"EN","titleZh":"中文","body":"2-3 sentences EN","bodyZh":"中文","urgency":"HIGH|MED-HIGH|MEDIUM","sourceNote":"basis","confidence":"high|medium|low"}],
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary|ai-inferred","status":"found|partial|unavailable","excerpt":"what","excerptZh":"说明"}],
+"dataReliability":"high|medium|low","reliabilityNote":"note","reliabilityNoteZh":"说明"}
+4 competitors, 6 pain points. PURE JSON ONLY.`;}
+
+function P_sales(target, seller, turl, surl) {
+  return `Sales playbook for "${seller}" (${surl||''}) selling into "${target}" (${turl||''}).
+Stakeholders: company leadership page → LinkedIn → press releases → 10-K officers.
+Unverifiable names: use role + "[Name not publicly listed]". Return ONLY valid JSON:
+{"stakeholders":[{"name":"Name or Role [Name not publicly listed]","title":"EN","titleZh":"中文","priority":"Primary|Champion|Influencer|Awareness|Expansion","msg":"engagement note EN","msgZh":"中文","color":"#hex","sourceName":"source","sourceUrl":"URL or N/A","verified":true}],
+"valueProps":[{"title":"${seller} solution","titleZh":"方案","match":"need EN","matchZh":"需求","body":"2-3 sentences EN","bodyZh":"中文","segment":"biz segment"}],
+"phases":[{"phase":"PHASE 1","phaseZh":"第一阶段","period":"Month 1-2","periodZh":"第1-2个月","name":"phase name EN","nameZh":"阶段名","actions":["action EN"],"actionsZh":["行动中文"]}],
+"goal":"goal + revenue target EN","goalZh":"目标",
+"questions":"5-6 questions plain text EN","questionsZh":"5-6问题",
+"sources":[{"name":"source","url":"URL or N/A","type":"primary|secondary|ai-inferred","status":"found|partial|unavailable","excerpt":"what","excerptZh":"说明"}],
+"dataReliability":"high|medium|low","reliabilityNote":"note","reliabilityNoteZh":"说明"}
+Colors: #0D1B3E #0369A1 #D4860A #1E2F5C #2D4278. 5-6 stakeholders, 4 value props, 3 phases. PURE JSON ONLY.`;}
+function fallback(target, url) {
+  return { companyName:target, companyNameZh:target, ticker:'',
+    profile:{ founded:'Data not available', foundedZh:'', headquarters:'Data not available', headquartersZh:'', ceo:'Data not available', ceoZh:'', employees:'Data not available', employeesZh:'', revenue:'Data not available', revenueZh:'', countries:'Data not available', countriesZh:'', website:url||'' },
+    segments:[{ pct:'—', name:'Segment data unavailable — edit manually', nameZh:'分部数据不可用', desc:'Research failed. Click to edit this cell and enter segment information manually.', descZh:'研究失败，请手动编辑。' }],
+    quote:'Data not available — click to edit', quoteZh:'数据不可用',
+    stats:[{value:'N/A',label:'Revenue',labelZh:'收入'},{value:'N/A',label:'Employees',labelZh:'员工'},{value:'N/A',label:'Countries',labelZh:'国家'},{value:'N/A',label:'Founded',labelZh:'成立'}],
+    sources:[{name:'Research failed',url:url||'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed. Edit manually.',excerptZh:'API调用失败，请手动编辑。'}],
+    dataReliability:'low', reliabilityNote:'Research failed — placeholder content', reliabilityNoteZh:'研究失败，使用占位符' };
+}
+function fallbackFd() {
+  const na = (l,lz) => ({value:'N/A',label:l,labelZh:lz,sub:'Unavailable',subZh:'不可用',color:'#0D1B3E',sourceName:'Research failed',sourceUrl:'N/A'});
+  return { kpis:[na('Revenue','收入'),na('Net Income','净利润'),na('Employees','员工'),na('Market Cap','市值')],
+    context:'Financial data could not be retrieved. Please edit manually or check Yahoo Finance, SEC EDGAR, or the company investor relations page.',
+    contextZh:'财务数据无法获取，请手动编辑或查看雅虎财经、SEC EDGAR或公司投资者关系页面。',
+    industry:'Data not available', industryZh:'数据不可用', market:'Data not available', marketZh:'数据不可用',
+    trends:'Data not available — edit manually.', trendsZh:'数据不可用，请手动编辑。',
+    sources:[{name:'Research failed',url:'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed.',excerptZh:'API调用失败。'}],
+    dataReliability:'low', reliabilityNote:'Research failed', reliabilityNoteZh:'研究失败' };
+}
+function fallbackSd() {
+  return { priorities:[{title:'Data not available — edit manually',titleZh:'数据不可用',body:'Strategic priorities could not be retrieved. Check the company annual report or investor relations page. [Placeholder]',bodyZh:'无法获取战略重点，请查看公司年报。',sourceName:'Research failed',sourceUrl:'N/A',confidence:'low'}],
+    techNumbers:[{value:'N/A',desc:'Technology investment data not available — edit manually',descZh:'技术投资数据不可用',sourceName:'Research failed',sourceUrl:'N/A'}],
+    techInvestments:[{category:'Data not available',categoryZh:'数据不可用',items:['Technology data unavailable — edit manually'],itemsZh:['技术数据不可用，请手动编辑']}],
+    signals:'Could not retrieve buying signals. [Placeholder — edit manually]', signalsZh:'无法获取购买信号，请手动编辑。',
+    sources:[{name:'Research failed',url:'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed.',excerptZh:'API调用失败。'}],
+    dataReliability:'low', reliabilityNote:'Research failed', reliabilityNoteZh:'研究失败' };
+}
+function fallbackNd() {
+  return { news:[{date:'N/A',headline:'News data unavailable — edit manually',headlineZh:'新闻数据不可用',summary:'Could not retrieve recent news. Check the company press releases page or news sources directly.',summaryZh:'无法获取新闻，请查看公司新闻稿。',source:'Research failed',sourceUrl:'N/A',category:'other',verified:false}],
+    sources:[{name:'Research failed',url:'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed.',excerptZh:'API调用失败。'}] };
+}
+function fallbackCd(target, seller) {
+  return { competitors:[{name:'Competitor data not available',strengths:'Edit manually.',strengthsZh:'请手动编辑。',advantage:`${seller} differentiation unavailable [Placeholder]`,advantageZh:'差异化不可用，请手动编辑。',threat:'MEDIUM',sourceNote:'Research failed'}],
+    differentiation:`${seller} vs competitor analysis for ${target} unavailable — edit manually.`, differentiationZh:'差异化分析不可用，请手动编辑。',
+    pains:[{title:'Pain point data unavailable — edit manually',titleZh:'痛点数据不可用',body:`Pain points for ${target} unavailable. Common industry pain points are left as placeholders. [Placeholder]`,bodyZh:'无法获取痛点数据，请手动编辑。',urgency:'MEDIUM',sourceNote:'Research failed',confidence:'low'}],
+    sources:[{name:'Research failed',url:'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed.',excerptZh:'API调用失败。'}],
+    dataReliability:'low', reliabilityNote:'Research failed', reliabilityNoteZh:'研究失败' };
+}
+function fallbackSal(target, seller) {
+  return { stakeholders:[{name:'[Name not publicly listed]',title:'Chief Executive Officer',titleZh:'首席执行官',priority:'Primary',msg:`Research could not identify ${target} executives. Check the company website leadership page and LinkedIn. [Placeholder]`,msgZh:'无法识别高管信息，请查看公司网站。',color:'#0D1B3E',sourceName:'Research failed',sourceUrl:'N/A',verified:false}],
+    valueProps:[{title:`${seller} Value Proposition`,titleZh:`${seller} 价值主张`,match:'Customer needs — edit manually',matchZh:'客户需求（请手动编辑）',body:`${seller} value prop for ${target} unavailable. Edit to describe how your solutions address this account's needs.`,bodyZh:'无法研究价值主张，请手动编辑。',segment:'Edit manually'}],
+    phases:[
+      {phase:'PHASE 1',phaseZh:'第一阶段',period:'Month 1-2',periodZh:'第1-2个月',name:'Research & Engage',nameZh:'调研与接触',actions:['Research target account','Identify key decision makers','Request introductory meeting'],actionsZh:['调研目标客户','识别关键决策者','申请初次会面']},
+      {phase:'PHASE 2',phaseZh:'第二阶段',period:'Month 2-3',periodZh:'第2-3个月',name:'Qualify & Propose',nameZh:'资格评估与提案',actions:['Conduct discovery calls','Identify pain points and budget','Develop tailored proposal'],actionsZh:['进行调研沟通','识别痛点和预算','制定定制化提案']},
+      {phase:'PHASE 3',phaseZh:'第三阶段',period:'Month 3-4',periodZh:'第3-4个月',name:'Close & Onboard',nameZh:'成交与入驻',actions:['Present final proposal','Finalize contract','Deliver initial implementation'],actionsZh:['提交最终提案','完成合同','交付初步实施']}
+    ],
+    goal:`Close initial deal with ${target} and establish strategic partnership.`, goalZh:`与${target}完成初始合同并建立战略合作。`,
+    questions:'1. What are the company current technology priorities?\n2. Who are the key decision makers?\n3. What is the budget cycle and approval process?\n4. What pain points are most urgent?\n5. Existing vendor relationships to consider?\n6. What does Year 1 success look like?',
+    questionsZh:'1. 公司当前技术优先事项？\n2. 关键决策者是谁？\n3. 预算周期和审批流程？\n4. 最迫切的痛点？\n5. 现有供应商关系？\n6. 第一年成功标准？',
+    sources:[{name:'Research failed',url:'N/A',type:'ai-inferred',status:'unavailable',excerpt:'API call failed.',excerptZh:'API调用失败。'}],
+    dataReliability:'low', reliabilityNote:'Research failed — using generic placeholders', reliabilityNoteZh:'研究失败，使用通用占位符' };
+}
+
+/* =================================================================
+   HTML BUILDERS
+   ================================================================= */
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function bStat(val, label, lzh, bg) {
+  const dark = bg !== '#D4860A';
+  const vc = dark ? '#FCD34D' : '#7C2D12';
+  const lc = dark ? '#E2E8F0' : '#7C2D12';
+  const sc = dark ? '#94A3B8' : 'rgba(124,45,18,.7)';
+  return `<div style="background:${bg};border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;text-align:center;min-width:0">
+    <span class="editable" contenteditable="true" style="background:rgba(255,255,255,.1);border-color:rgba(252,211,77,.4);color:${vc};font-size:clamp(14px,3vw,22px);font-weight:800;display:block;margin-bottom:3px;word-break:break-all">${esc(val)}</span>
+    <div class="editable" contenteditable="true" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);font-size:11px;color:${lc};font-weight:600">${esc(label)}</div>
+    <div class="editable zh" contenteditable="true" style="background:rgba(3,105,161,.2);border-color:rgba(147,197,253,.3);font-size:10px;color:${sc};margin-top:3px">${esc(lzh)}</div>
+  </div>`;
+}
+function bProw(key, val, vz) {
+  return `<div class="prow"><span class="pkey">${esc(key)}</span><div style="min-width:0">
+    <div class="editable" contenteditable="true" style="margin-bottom:3px">${esc(val)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px">${esc(vz)}</div>
+  </div></div>`;
+}
+function bSeg(pct, color, n, nz, d, dz) {
+  return `<div class="seg"><div class="seg-pct" style="background:${color}"><span class="editable" contenteditable="true" style="background:transparent;border:none;color:#fff;font-size:16px;font-weight:800">${esc(pct)}</span></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:3px"><div class="editable seg-n" contenteditable="true">${esc(n)}</div><div class="editable zh seg-n" contenteditable="true" style="font-size:12px;color:var(--teal-text)">${esc(nz)}</div></div>
+      <div class="editable seg-d" contenteditable="true">${esc(d)}</div>
+      <div class="editable zh seg-d" contenteditable="true" style="font-size:11px;margin-top:2px">${esc(dz)}</div>
+    </div></div>`;
+}
+function bKpi(val, label, lzh, sub, szh, color, srcName, srcUrl) {
+  const dark = color !== '#D4860A';
+  const tc = dark ? '#fff' : '#7C2D12';
+  const sc = dark ? 'rgba(255,255,255,.75)' : 'rgba(124,45,18,.7)';
+  const isNA = !val || val === 'N/A' || val.startsWith('Data not');
+  const srcHtml = srcName && srcName !== 'Research failed'
+    ? `<div style="font-size:9px;color:${sc};margin-top:5px;word-break:break-all">📌 ${esc(srcName)}${srcUrl&&srcUrl.startsWith('http')?` <a href="${esc(srcUrl)}" target="_blank" style="color:${sc}">🔗</a>`:''}</div>` : '';
+  return `<div class="kpi" style="background:${color}${isNA?';opacity:.75':''}">
+    <span class="editable kpi-v" contenteditable="true" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:${tc};font-size:${isNA?'14px':'clamp(16px,3vw,24px)'}">${esc(isNA?'N/A':val)}</span>
+    <div class="editable kpi-l" contenteditable="true" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:${tc}">${esc(label)}</div>
+    <div class="editable zh kpi-l" contenteditable="true" style="background:rgba(3,105,161,.2);border-color:rgba(147,197,253,.3);color:${sc};font-size:11px;margin-top:2px">${esc(lzh)}</div>
+    <div class="editable kpi-s" contenteditable="true" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:${sc}">${esc(sub)}</div>
+    <div class="editable zh kpi-s" contenteditable="true" style="background:rgba(3,105,161,.15);border-color:rgba(147,197,253,.2);color:${sc};font-size:10px">${esc(szh)}</div>
+    ${srcHtml}
+  </div>`;
+}
+function bNews(date, h, hz, s, sz, src, srcUrl, category) {
+  const catColors = {earnings:'#15803D',strategy:'#0369A1',technology:'#6D28D9',leadership:'#D4860A',partnership:'#0891B2',regulatory:'#B91C1C',other:'#475569'};
+  const cc = catColors[category]||'#475569';
+  const cl = category ? category.charAt(0).toUpperCase()+category.slice(1) : '';
+  return `<div class="ni"><div class="ni-date">${esc(date)}</div>
+  <div style="flex:1;min-width:0">
+    <div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+      <div class="editable ni-h" contenteditable="true" style="flex:1;min-width:0">${esc(h)}</div>
+      ${cl?`<span style="background:${cc};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0">${cl}</span>`:''}
+    </div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px;font-weight:600;color:var(--teal-text);margin-bottom:4px">${esc(hz)}</div>
+    <div class="editable" contenteditable="true" style="font-size:12px;color:var(--text-secondary)">${esc(s)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px;color:var(--text-secondary);margin-top:2px">${esc(sz)}</div>
+    <div style="margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:10px;font-weight:700;color:var(--teal)">📰 ${esc(src)}</span>
+      ${srcUrl&&srcUrl.startsWith('http')?`<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--teal);word-break:break-all">🔗 ${esc(srcUrl.length>55?srcUrl.slice(0,55)+'…':srcUrl)}</a>`:''}
+    </div>
+  </div></div>`;
+}
+function bComp(name, sE, sZ, aE, aZ, threat) {
+  const tc = threat==='HIGH'?'var(--red)':threat==='MEDIUM'?'#D97706':'var(--green)';
+  return `<div class="cg">
+    <div class="editable cn" contenteditable="true">${esc(name)}</div>
+    <div style="min-width:0"><div class="editable" contenteditable="true" style="font-size:13px">${esc(sE)}</div><div class="editable zh" contenteditable="true" style="font-size:11px;margin-top:3px">${esc(sZ)}</div></div>
+    <div style="min-width:0"><div class="editable" contenteditable="true" style="font-size:13px">${esc(aE)}</div><div class="editable zh" contenteditable="true" style="font-size:11px;margin-top:3px">${esc(aZ)}</div></div>
+    <div><span class="pb" style="background:${tc};color:#fff;white-space:nowrap">${esc(threat)}</span></div>
+  </div>`;
+}
+function bPri(num, nc, tE, tZ, bE, bZ) {
+  const tc = nc==='#D4860A'?'#7C2D12':'#fff';
+  return `<div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px">
+      <span style="background:${nc};color:${tc};border-radius:50%;min-width:24px;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">${num}</span>
+      <div style="min-width:0">
+        <div class="editable" contenteditable="true" style="background:transparent;border:none;padding:0;font-weight:700;color:var(--text-primary)">${esc(tE)}</div>
+        <div class="editable zh" contenteditable="true" style="background:transparent;border:none;padding:0;font-size:12px;color:var(--teal-text)">${esc(tZ)}</div>
+      </div>
+    </div>
+    <div class="bi-block"><div class="bi-lang">
+      <div class="bi-pane"><div class="lang-bar">🇺🇸 English</div><div class="bi-content"><div class="editable" contenteditable="true" style="min-height:60px">${esc(bE)}</div></div></div>
+      <div class="bi-pane"><div class="lang-bar zh">🇨🇳 中文</div><div class="bi-content"><div class="editable zh" contenteditable="true" style="min-height:60px">${esc(bZ)}</div></div></div>
+    </div></div>
+  </div>`;
+}
+function bTNum(val, dE, dZ) {
+  return `<div class="num-tile">
+    <div class="num-val editable" contenteditable="true" style="background:transparent;border:none">${esc(val)}</div>
+    <div class="num-desc editable" contenteditable="true" style="background:transparent;border:none;padding:0">${esc(dE)}</div>
+    <div class="num-desc-zh editable zh" contenteditable="true" style="background:transparent;border:none;padding:0">${esc(dZ)}</div>
+  </div>`;
+}
+function bPain(tE, tZ, bE, bZ, urgency, confidence, srcNote) {
+  const uc = urgency==='HIGH'?'pb-high':urgency==='MED-HIGH'?'pb-mh':'pb-med';
+  const isInferred = bE && (bE.includes('[AI-inferred') || bE.includes('[Placeholder'));
+  const cb = confidence==='low'
+    ? '<span style="font-size:9px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:3px;font-weight:700;white-space:nowrap">Low confidence</span>'
+    : confidence==='medium'
+    ? '<span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:2px 6px;border-radius:3px;font-weight:700;white-space:nowrap">Medium</span>' : '';
+  return `<div class="pain-card" style="${isInferred?'border-color:#E9D5FF':''}">
+    <span class="pb ${uc} pain-b">${esc(urgency)}</span>
+    <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:6px;flex-wrap:wrap;padding-right:90px">
+      <div class="editable pain-t" contenteditable="true" style="margin-bottom:0;min-width:0">${esc(tE)}</div>${cb}
+    </div>
+    <div class="editable zh" contenteditable="true" style="font-weight:700;font-size:12px;color:var(--teal-text);margin-bottom:8px">${esc(tZ)}</div>
+    <div class="editable" contenteditable="true" style="font-size:12px;color:var(--text-secondary);line-height:1.55">${esc(bE)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px;margin-top:4px;color:var(--text-secondary)">${esc(bZ)}</div>
+    ${srcNote?`<div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-style:italic;word-break:break-word">📌 ${esc(srcNote)}</div>`:''}
+    ${isInferred?'<div style="font-size:10px;color:var(--purple);margin-top:4px">🟣 AI-inferred · AI推断内容</div>':''}
+  </div>`;
+}
+function bVal(tE, tZ, mE, mZ, bE, bZ, seg) {
+  return `<div class="vc">
+    <div class="editable vct" contenteditable="true">${esc(tE)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:13px;color:#93C5FD;margin-bottom:5px">${esc(tZ)}</div>
+    <span class="vcm"><span class="editable" contenteditable="true" style="background:transparent;border:none;color:#fff;font-size:9px;font-weight:700;display:inline">${esc(mE)}</span></span>
+    <div class="editable zh" contenteditable="true" style="font-size:10px;color:#7DD3FC;margin-bottom:8px">${esc(mZ)}</div>
+    <div class="editable vcb" contenteditable="true">${esc(bE)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px;color:#94A3B8;line-height:1.6;margin-top:4px">${esc(bZ)}</div>
+    <div class="editable vcs" contenteditable="true">${esc(seg)}</div>
+  </div>`;
+}
+function bSH(name, tE, tZ, pri, mE, mZ, color, srcName, srcUrl, verified) {
+  const init = (name||'?').replace(/\[.*\]/g,'').replace('⚠️','').trim().charAt(0).toUpperCase();
+  const pm = {Primary:'pb-primary',Champion:'pb-champion',Influencer:'pb-default',Awareness:'pb-default',Expansion:'pb-default'};
+  const unverified = !verified || (name||'').includes('[Name not');
+  const srcLine = srcName && srcName !== 'Research failed'
+    ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;word-break:break-all">📌 ${esc(srcName)}${srcUrl&&srcUrl.startsWith('http')?` <a href="${esc(srcUrl)}" target="_blank" style="color:var(--teal)">🔗</a>`:''}</div>`
+    : unverified ? `<div style="font-size:10px;color:var(--amber-text);margin-top:4px">⚠️ Unverified — check company website · 未经核实</div>` : '';
+  return `<div class="shc" style="${unverified?'border-color:#FCD34D;background:#FFFDF0':''}">
+    <span class="pb ${pm[pri]||'pb-default'} shb">${esc(pri)}</span>
+    <div class="sha" style="background:${color}">${esc(init)}</div>
+    <div style="overflow:hidden;min-width:0">
+      <div class="editable shn" contenteditable="true">${esc(name)}</div>
+      <div class="editable" contenteditable="true" style="font-size:11px;color:var(--text-muted)">${esc(tE)}</div>
+      <div class="editable zh" contenteditable="true" style="font-size:11px;color:var(--teal-text)">${esc(tZ)}</div>
+    </div>
+    <div class="editable shm" contenteditable="true">${esc(mE)}</div>
+    <div class="editable zh" contenteditable="true" style="font-size:12px;color:var(--teal-text);margin-top:4px;clear:both;line-height:1.5">${esc(mZ)}</div>
+    ${srcLine}
+  </div>`;
+}
+function bPhase(phE, phZ, perE, perZ, nE, nZ, acE, acZ, bg, fg, dot) {
+  const sub = fg==='#7C2D12'?'rgba(124,45,18,.7)':'rgba(255,255,255,.7)';
+  const acts = (acE||[]).map((a,i)=>`<div class="phase-a">
+    <span class="phase-dot" style="background:${dot}"></span>
+    <div style="min-width:0">
+      <div class="editable" contenteditable="true" style="font-size:12.5px">${esc(a)}</div>
+      <div class="editable zh" contenteditable="true" style="font-size:12px;margin-top:2px;color:var(--teal-text)">${esc((acZ||[])[i]||'')}</div>
+    </div>
+  </div>`).join('');
+  return `<div class="phase-card">
+    <div class="phase-h" style="background:${bg};color:${fg}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2px">
+        <div class="editable phase-l" contenteditable="true" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:${fg}">${esc(phE)}</div>
+        <div class="editable zh phase-l" contenteditable="true" style="background:rgba(3,105,161,.2);border-color:rgba(147,197,253,.3);color:${sub}">${esc(phZ)}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+        <div class="editable phase-p" contenteditable="true" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:${fg}">${esc(perE)}</div>
+        <div class="editable zh phase-p" contenteditable="true" style="background:rgba(3,105,161,.15);border-color:rgba(147,197,253,.25);color:${sub};font-size:10px">${esc(perZ)}</div>
+      </div>
+      <div class="editable phase-n" contenteditable="true" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:${fg}">${esc(nE)}</div>
+      <div class="editable zh" contenteditable="true" style="background:rgba(3,105,161,.15);border-color:rgba(147,197,253,.25);color:${sub};font-size:14px;margin-top:3px">${esc(nZ)}</div>
+    </div>
+    <div class="phase-b">${acts}</div>
+  </div>`;
+}
+
+/* =================================================================
+   RENDER — populates all report sections from data objects
+   ================================================================= */function render(D) {
+  const { target, seller, od, fd, sd, nd, cd, sal } = D;
+
+  document.getElementById('ribTarget').textContent = `${od.companyName||target} / ${od.companyNameZh||''}`;
+  document.getElementById('r-cname').textContent    = od.companyName||target;
+  document.getElementById('r-cname-zh').textContent = od.companyNameZh||'';
+  document.getElementById('r-meta').textContent     = `Prepared by ${seller} · Strategic Account Intelligence · ${new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})}`;
+
+  const scs = ['#0D1B3E','#0369A1','#1E2F5C','#D4860A'];
+  document.getElementById('r-stats').innerHTML = (od.stats||[]).map((s,i)=>bStat(s.value,s.label,s.labelZh||'',scs[i%scs.length])).join('');
+
+  const pr = od.profile||{};
+  document.getElementById('r-prof').innerHTML = [
+    ['Founded · 成立',pr.founded,pr.foundedZh],['HQ · 总部',pr.headquarters,pr.headquartersZh],
+    ['CEO',pr.ceo,pr.ceoZh],['Employees · 员工',pr.employees,pr.employeesZh],
+    ['Revenue · 收入',pr.revenue,pr.revenueZh],['Operations · 运营',pr.countries,pr.countriesZh],
+    ['Website · 网站',pr.website,pr.website],
+  ].filter(([,v])=>v).map(([k,v,z])=>bProw(k,v,z||'')).join('');
+
+  const sgc=['#0D1B3E','#0369A1','#D4860A','#1E2F5C'];
+  document.getElementById('r-segs').innerHTML = (od.segments||[]).map((s,i)=>bSeg(s.pct,sgc[i%sgc.length],s.name,s.nameZh||'',s.desc,s.descZh||'')).join('');
+  document.getElementById('r-quote').textContent = `"${od.quote||''}" · "${od.quoteZh||''}"`;
+
+  document.getElementById('r-ind').textContent    = fd.industry   ||'';
+  document.getElementById('r-ind-zh').textContent = fd.industryZh ||'';
+  document.getElementById('r-mkt').textContent    = fd.market     ||'';
+  document.getElementById('r-mkt-zh').textContent = fd.marketZh   ||'';
+  document.getElementById('r-trd').textContent    = fd.trends     ||'';
+  document.getElementById('r-trd-zh').textContent = fd.trendsZh   ||'';
+
+  const kc=['#0D1B3E','#0369A1','#1E2F5C','#D4860A'];
+  document.getElementById('r-kpis').innerHTML = (fd.kpis||[]).map((k,i)=>bKpi(k.value,k.label,k.labelZh||'',k.sub||'',k.subZh||'',k.color||kc[i%kc.length],k.sourceName||'',k.sourceUrl||'')).join('');
+  document.getElementById('r-fin').textContent    = fd.context   ||'';
+  document.getElementById('r-fin-zh').textContent = fd.contextZh ||'';
+
+  const noNews = '<div class="data-na"><span class="icon">⚠️</span><span>No news retrieved — add manually · 未获取新闻，请手动添加</span></div>';
+  document.getElementById('r-news').innerHTML = nd.news&&nd.news.length
+    ? nd.news.map(n=>bNews(n.date,n.headline,n.headlineZh||'',n.summary,n.summaryZh||'',n.source,n.sourceUrl||'',n.category||'')).join('')
+    : noNews;
+
+  document.getElementById('r-comps').innerHTML = (cd.competitors||[]).map(c=>bComp(c.name,c.strengths,c.strengthsZh||'',c.advantage,c.advantageZh||'',c.threat)).join('');
+  document.getElementById('r-diff').textContent    = cd.differentiation   ||'';
+  document.getElementById('r-diff-zh').textContent = cd.differentiationZh ||'';
+
+  const pc=['#0D1B3E','#0369A1','#D4860A','#1E2F5C'];
+  document.getElementById('r-pris').innerHTML = (sd.priorities||[]).map((p,i)=>bPri(i+1,pc[i%pc.length],p.title,p.titleZh||'',p.body,p.bodyZh||'')).join('');
+
+  const tn = document.getElementById('r-tnums');
+  tn.innerHTML = (sd.techNumbers||[]).map(n=>bTNum(n.value,n.desc,n.descZh||'')).join('');
+
+  const ic=['#0D1B3E','#0369A1','#1E2F5C'];
+  document.getElementById('r-tinv').innerHTML = (sd.techInvestments||[]).map((t,i)=>`<div class="card" style="margin-bottom:10px">
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="background:${ic[i%ic.length]};color:#fff;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700">${esc(t.category)}</span>
+      <span style="font-size:11px;color:var(--teal-text);font-weight:600">${esc(t.categoryZh||'')}</span>
+    </div>
+    <div class="bi-block"><div class="bi-lang">
+      <div class="bi-pane"><div class="lang-bar">🇺🇸 English</div><div class="bi-content"><textarea class="editable" style="min-height:55px;width:100%;resize:vertical">${esc((t.items||[]).join('\n'))}</textarea></div></div>
+      <div class="bi-pane"><div class="lang-bar zh">🇨🇳 中文</div><div class="bi-content"><textarea class="editable zh" style="min-height:55px;width:100%;resize:vertical">${esc((t.itemsZh||[]).join('\n'))}</textarea></div></div>
+    </div></div>
+  </div>`).join('');
+  document.getElementById('r-sig').textContent    = sd.signals   ||'';
+  document.getElementById('r-sig-zh').textContent = sd.signalsZh ||'';
+
+  document.getElementById('r-pains').innerHTML = (cd.pains||[]).map(p=>bPain(p.title,p.titleZh||'',p.body,p.bodyZh||'',p.urgency,p.confidence||'medium',p.sourceNote||'')).join('');
+
+  document.getElementById('r-vptitle').innerHTML = `Value Proposition — ${esc(seller)} for ${esc(target)} <span class="zh">价值主张</span>`;
+  document.getElementById('r-vps').innerHTML = (sal.valueProps||[]).map(v=>bVal(v.title,v.titleZh||'',v.match,v.matchZh||'',v.body,v.bodyZh||'',v.segment||'')).join('');
+
+  const shc=['#0D1B3E','#D4860A','#D4860A','#0369A1','#0369A1','#1E2F5C'];
+  document.getElementById('r-shs').innerHTML = (sal.stakeholders||[]).map((s,i)=>bSH(s.name,s.title,s.titleZh||'',s.priority,s.msg,s.msgZh||'',s.color||shc[i%shc.length],s.sourceName||'',s.sourceUrl||'',s.verified)).join('');
+
+  const phc=[{bg:'#0D1B3E',fg:'#fff',dot:'#D4860A'},{bg:'#0369A1',fg:'#fff',dot:'#0369A1'},{bg:'#D4860A',fg:'#7C2D12',dot:'#7C2D12'}];
+  document.getElementById('r-phases').innerHTML = (sal.phases||[]).map((p,i)=>{const c=phc[i%phc.length];return bPhase(p.phase,p.phaseZh||'',p.period,p.periodZh||'',p.name,p.nameZh||'',p.actions,p.actionsZh,c.bg,c.fg,c.dot);}).join('');
+
+  document.getElementById('r-goal').textContent     = sal.goal      ||'';
+  document.getElementById('r-goal-zh').textContent  = sal.goalZh    ||'';
+  document.getElementById('r-qs').textContent       = sal.questions  ||'';
+  document.getElementById('r-qs-zh').textContent    = sal.questionsZh||'';
+
+  /* Auto-resize textareas */
+  document.querySelectorAll('textarea.editable').forEach(el => {
+    el.style.height='auto'; el.style.height=el.scrollHeight+'px';
+    el.addEventListener('input',()=>{ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; });
+  });
+
+  /* Citations */
+  try { renderCitations(D); } catch(e) { console.warn('Citations render failed:', e); }
+
+  /* Usage & cost */
+  try { renderUsage(D); } catch(e) { console.warn('Usage render failed:', e); }
+}
+
+/* ════ USAGE & COST ════ */
+// Format a millisecond duration as "2m 34s" / "45s"
+function fmtDuration(ms) {
+  if (!ms) return '—';
+  const totalSec = Math.round(ms / 1000);
+  const m = Math.floor(totalSec / 60), s = totalSec % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function renderUsage(D) {
+  const panel = document.getElementById('usagePanel');
+  if (!panel) return;
+  const u = D._usage;
+  if (!u || !u.apiCalls) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const fmt = n => Math.round(n||0).toLocaleString();
+  const totalTokens = (u.inputTokens||0) + (u.outputTokens||0);
+
+  const stats = [
+    { label:'Estimated Cost · 预估费用',     value:`$${(u.costUSD||0).toFixed(2)}` },
+    { label:'Claude API Calls · API调用',    value:fmt(u.apiCalls) },
+    { label:'Input Tokens · 输入令牌',       value:fmt(u.inputTokens) },
+    { label:'Output Tokens · 输出令牌',      value:fmt(u.outputTokens) },
+    { label:'Total Tokens · 总令牌数',       value:fmt(totalTokens) },
+    { label:'Generation Time · 生成耗时',    value:fmtDuration(u.generationTimeMs) },
+  ];
+  if (u.reusedSections) {
+    stats.push({ label:'Reused Sections · 复用部分', value:String(u.reusedSections) });
+    stats.push({ label:'Est. Savings · 预估节省',     value:`${Math.round(u.estimatedSavingsPct||0)}%` });
+  }
+  document.getElementById('usageStats').innerHTML = stats.map(s =>
+    `<div style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:9px 12px">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">${s.label}</div>
+      <div style="font-size:18px;font-weight:800;color:var(--navy)">${s.value}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('usageSummary').innerHTML =
+    `Model: <strong>${esc(u.model||'')}</strong>`;
+
+  document.getElementById('usageBreakdown').innerHTML = Object.entries(u.bySection||{}).map(([id,s])=>
+    `<div style="display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:5px 10px;background:#fff;border:1px solid var(--gray-200);border-radius:5px">
+      <span>${esc(s.label||id)}${s.reused?' &nbsp;<span style="color:var(--teal)">♻ reused · 复用</span>':''}</span>
+      <span style="color:var(--text-muted)">${s.apiCalls||0} call${(s.apiCalls||0)===1?'':'s'} · ${fmt(s.inputTokens)}/${fmt(s.outputTokens)} tok · $${(s.costUSD||0).toFixed(4)}</span>
+    </div>`
+  ).join('');
+}
+
+/* ── Citations ── *//* ════ RENDER CITATIONS ════ */
+function renderCitations(D) {
+  const citEl = document.getElementById('r-citations');
+  if (!citEl) return;
+  document.getElementById('citationsSection').style.display = 'block';
+  const sections = [
+    { label:'Company Overview · 公司概述', data:D.od },
+    { label:'Financial Data · 财务数据',   data:D.fd },
+    { label:'Strategy & Tech · 战略技术',  data:D.sd },
+    { label:'Recent News · 近期新闻',      data:D.nd },
+    { label:'Competitive · 竞争分析',      data:D.cd },
+    { label:'Stakeholders · 利益相关者',   data:D.sal },
+  ];
+  const relCls = { high:'rel-high', medium:'rel-med', low:'rel-low' };
+  const relLbl = { high:'High · 高', medium:'Partial · 部分', low:'Limited · 有限' };
+  const typeIcon = { primary:'🟢', secondary:'🔵', 'ai-inferred':'🟣' };
+  citEl.innerHTML = sections.map(sec => {
+    const sources  = (sec.data && sec.data.sources) || [];
+    const rel      = (sec.data && sec.data.dataReliability) || 'low';
+    const relNote  = (sec.data && sec.data.reliabilityNote) || '';
+    const rows = sources.length ? sources.map(src => {
+      const cls  = src.type==='primary'?'primary':src.status==='unavailable'?'unavailable':'secondary';
+      const icon = typeIcon[src.type] || '⚪';
+      const urlP = src.url && src.url!=='N/A' && src.url.startsWith('http')
+        ? `<a class="src-url" href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.url)}</a>` : '';
+      return `<div class="src-item ${cls}"><span class="src-icon">${icon}</span>
+        <div class="src-body"><div class="src-name">${esc(src.name||'Unknown')}</div>${urlP}
+          <span class="src-status ${src.status||'unavailable'}">${src.status||'unknown'}</span>
+          ${src.excerpt  ? `<div class="src-excerpt">${esc(src.excerpt)}</div>`   : ''}
+          ${src.excerptZh ? `<div class="src-zh">${esc(src.excerptZh)}</div>`    : ''}
+        </div></div>`;
+    }).join('') : `<div class="data-na"><span class="icon">⚠️</span><span>No verifiable sources · 无可验证来源</span></div>`;
+    return `<div class="src-panel" style="margin-bottom:14px">
+      <div class="src-panel-title"><span>${esc(sec.label)}</span>
+        <span class="rel-badge ${relCls[rel]||'rel-na'}">${relLbl[rel]||rel}</span>
+        ${relNote ? `<span style="font-size:10px;color:var(--text-muted);margin-left:4px">· ${esc(relNote)}</span>` : ''}
+      </div><div class="src-list">${rows}</div></div>`;
+  }).join('');
+}
+
+/* ════ VALIDATION ════ */
+function flagUnavailableFields(D) {
+  const NA='Data not available', NA_ZH='数据不可用';
+  [D.od,D.fd,D.sd,D.nd,D.cd,D.sal].forEach(o=>{
+    if(o&&!o.sources) o.sources=[];
+    if(o&&!o.dataReliability) o.dataReliability='medium';
+  });
+  if(D.od&&D.od.profile) Object.keys(D.od.profile).forEach(k=>{ if(!D.od.profile[k]) D.od.profile[k]=k.endsWith('Zh')?NA_ZH:NA; });
+  if(D.fd&&D.fd.kpis) D.fd.kpis.forEach(k=>{ if(!k.value) k.value=NA; if(!k.sourceName) k.sourceName='Source unverified'; });
+  if(D.nd&&D.nd.news){ D.nd.news=D.nd.news.filter(n=>n.headline); if(!D.nd.news.length) D.nd._noNews=true; }
+  if(D.sal&&D.sal.stakeholders) D.sal.stakeholders.forEach(sh=>{ if(!sh.verified&&sh.name&&!sh.name.includes('[')) sh.name+=' ⚠️'; });
+}
+
+/* ════ PPT BUTTON ════ */
+function updatePptButton() {
+  const btn = document.getElementById('btnPpt');
+  if (!btn) return;
+  btn.disabled = !(_pptData && _pptData.target);
+  btn.title = btn.disabled ? 'Generate a report first · 请先生成报告' : '';
+}
+/* ════ EXPORT VALIDATION ════ */
+function validateExportContent(D) {
+  const warnings = [];
+  if (!D) return warnings;
+  let totalChars = 0;
+  const countText = (obj) => {
+    if (!obj) return;
+    if (typeof obj === 'string') { totalChars += obj.length; return; }
+    if (Array.isArray(obj)) { obj.forEach(countText); return; }
+    if (typeof obj === 'object') { Object.values(obj).forEach(countText); }
+  };
+  ['od','fd','sd','nd','cd','sal'].forEach(k => countText(D[k]));
+
+  const numCount  = ((D.sd && D.sd.techNumbers)     || []).length;
+  const invCount  = ((D.sd && D.sd.techInvestments) || []).length;
+  const newsCount = ((D.nd && D.nd.news)            || []).length;
+  const compCount = ((D.cd && D.cd.competitors)     || []).length;
+  const painCount = ((D.cd && D.cd.pains)           || []).length;
+  const shCount   = ((D.sal && D.sal.stakeholders)  || []).length;
+
+  let extraSlides = 0;
+  extraSlides += Math.max(0, Math.ceil(numCount  / 6) - 1);
+  extraSlides += Math.max(0, Math.ceil(invCount  / 3) - 1);
+  extraSlides += Math.max(0, Math.ceil(newsCount / 5) - 1);
+  extraSlides += Math.max(0, Math.ceil(compCount / 5) - 1);
+  extraSlides += Math.max(0, Math.ceil(painCount / 6) - 1);
+  extraSlides += Math.max(0, Math.ceil(shCount   / 6) - 1);
+
+  if (extraSlides > 0) {
+    warnings.push(`📐 Content is extensive — PowerPoint export will automatically add <strong>${extraSlides}</strong> continuation slide${extraSlides>1?'s':''} beyond the standard deck to keep layouts readable.<br><span style="opacity:.8">内容较多，PPT导出将自动增加 <strong>${extraSlides}</strong> 张续页幻灯片以保证可读性。</span>`);
+  }
+  if (totalChars > 12000) {
+    warnings.push(`📝 This report contains a large amount of text. <strong>Word (.docx)</strong> is recommended for the most readable, naturally-flowing layout.<br><span style="opacity:.8">本报告文本量较大，推荐使用 <strong>Word (.docx)</strong> 格式以获得最自然流畅的排版。</span>`);
+  }
+  return warnings;
+}
+function updateExportNotice() {
+  const notice = document.getElementById('exportNotice');
+  const fmt = (document.querySelector('input[name="exportFormat"]:checked')||{}).value;
+  const warnings = validateExportContent(_pptData);
+  let html = warnings.map(w=>`<div class="export-notice" style="margin-bottom:8px">${w}</div>`).join('');
+  if (fmt === 'pdf') {
+    html += `<div class="export-notice">📄 PDF export captures a snapshot of the on-screen report — great for sharing and printing, but not for further editing.<br><span style="opacity:.8">PDF导出为当前报告页面的快照，适合分享与打印，但不便于后续编辑。</span></div>`;
+  }
+  notice.innerHTML = html;
+  notice.style.display = html ? 'block' : 'none';
+}
+
+/* ════ EXPORT MODAL ════ */
+// Compact "Report Generation Summary" shown inside the export dialog
+function renderExportUsageSummary(D) {
+  const el = document.getElementById('exportUsageSummary');
+  if (!el) return;
+  const u = D && D._usage;
+  if (!u || !u.apiCalls) { el.style.display = 'none'; return; }
+  const fmt = n => Math.round(n||0).toLocaleString();
+  const totalTokens = (u.inputTokens||0) + (u.outputTokens||0);
+  let line = `💰 <strong>$${(u.costUSD||0).toFixed(2)}</strong> est. cost &nbsp;·&nbsp; `
+    + `<strong>${u.apiCalls||0}</strong> API call${(u.apiCalls||0)===1?'':'s'} &nbsp;·&nbsp; `
+    + `<strong>${fmt(totalTokens)}</strong> tokens (${fmt(u.inputTokens)} in / ${fmt(u.outputTokens)} out) &nbsp;·&nbsp; `
+    + `⏱ <strong>${fmtDuration(u.generationTimeMs)}</strong>`;
+  if (u.reusedSections) {
+    line += ` &nbsp;·&nbsp; ♻ <strong>${u.reusedSections}</strong> reused section${u.reusedSections===1?'':'s'} &nbsp;·&nbsp; `
+      + `<strong>${Math.round(u.estimatedSavingsPct||0)}%</strong> saved`;
+  }
+  el.innerHTML = `<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-secondary)">`
+    + `<div style="font-weight:700;color:var(--navy);margin-bottom:4px">Report Generation Summary · 报告生成摘要</div>`
+    + line
+    + `</div>`;
+  el.style.display = 'block';
+}
+function openExportModal() {
+  if (!_pptData || !_pptData.target) { alert('Generate a report first · 请先生成报告'); return; }
+  document.getElementById('pptModal').classList.add('show');
+  document.getElementById('pptProgress').classList.remove('show');
+  document.getElementById('pptGoBtn').disabled = false;
+  renderExportUsageSummary(_pptData);
+  updateExportNotice();
+}
+function closePptModal() { document.getElementById('pptModal').classList.remove('show'); }
+function selectExportFormat(fmt, el) {
+  document.querySelectorAll('.ppt-opts-3 .ppt-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('fmt'+fmt.charAt(0).toUpperCase()+fmt.slice(1)).checked = true;
+  document.getElementById('pptxModeRow').style.display = fmt==='pptx' ? 'block' : 'none';
+  updateExportNotice();
+}
+function selectPptMode(mode, el) {
+  document.querySelectorAll('#pptxModeRow .ppt-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('backendUrlRow').style.display = mode==='backend'?'block':'none';
+  document.getElementById('mode'+mode.charAt(0).toUpperCase()+mode.slice(1)).checked = true;
+}
+function setPptProg(pct, label) {
+  document.getElementById('pptProgFill').style.width = pct+'%';
+  if (label) document.getElementById('pptProgLabel').textContent = label;
+}
+async function startPptExport() {
+  const fmt = (document.querySelector('input[name="exportFormat"]:checked')||{}).value || 'pptx';
+  document.getElementById('pptProgress').classList.add('show');
+  document.getElementById('pptGoBtn').disabled = true;
+  try {
+    if (fmt === 'pptx') {
+      const mode = document.querySelector('input[name="pptMode"]:checked').value;
+      if (mode==='browser') await exportPptBrowser();
+      else await exportPptBackendFn();
+    } else if (fmt === 'docx') {
+      await exportDocx();
+    } else if (fmt === 'pdf') {
+      await exportPdf();
+    }
+    closePptModal();
+  } catch(e) {
+    alert('Export failed · 导出失败: '+e.message);
+    document.getElementById('pptGoBtn').disabled = false;
+  }
+}
+async function exportPptBackendFn() {
+  const ep = (document.getElementById('pptEndpoint')||{}).value || '';
+  if (!ep) throw new Error('Enter backend endpoint URL · 请输入后端接口地址');
+  setPptProg(20,'Sending to server…');
+  const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_pptData)});
+  if(!resp.ok) throw new Error('Server error '+resp.status);
+  setPptProg(85,'Downloading…');
+  const blob=await resp.blob(); triggerDownload(blob,buildFilename());
+  setPptProg(100,'Done ✅');
+}
+function triggerDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function buildFilename(ext){
+  const t=((_pptData&&_pptData.target)||'Account').replace(/[^a-z0-9]/gi,'_');
+  const s=((_pptData&&_pptData.seller)||'Report').replace(/[^a-z0-9]/gi,'_');
+  return `${s}_${t}_AccountPlan_${new Date().toISOString().slice(0,10)}.${ext||'pptx'}`;
+}
+
+/* ════ WORD (.docx) EXPORT ════ */
+async function exportDocx() {
+  if (typeof docx === 'undefined') throw new Error('docx library not loaded. Check /vendor/docx.');
+  const D = _pptData;
+  const od=D.od||{}, fd=D.fd||{}, sd=D.sd||{}, nd=D.nd||{}, cd=D.cd||{}, sal=D.sal||{};
+  const {
+    Document, Packer, Paragraph, TextRun, HeadingLevel,
+    TableOfContents, ExternalHyperlink, PageBreak, AlignmentType,
+    Table, TableRow, TableCell, WidthType, ShadingType,
+  } = docx;
+
+  setPptProg(5, 'Building Word document · 正在生成Word文档…');
+
+  const children = [];
+  const zhColor = '1D4ED8';
+  const linkColor = '0563C1';
+
+  const isUrl = u => typeof u === 'string' && /^https?:\/\//i.test(u);
+
+  const h1 = (en, zh) => {
+    children.push(new Paragraph({ text: en, heading: HeadingLevel.HEADING_1, spacing:{ before:300, after:60 } }));
+    if (zh) children.push(new Paragraph({ children:[new TextRun({ text: zh, italics:true, color:zhColor })], spacing:{ after:120 } }));
+  };
+  const h2 = (en, zh) => {
+    if (!en && !zh) return;
+    children.push(new Paragraph({ text: en||'', heading: HeadingLevel.HEADING_2, spacing:{ before:160, after:40 } }));
+    if (zh) children.push(new Paragraph({ children:[new TextRun({ text: zh, italics:true, color:zhColor, size:20 })], spacing:{ after:80 } }));
+  };
+  const para = (en, zh) => {
+    if (en) children.push(new Paragraph({ text: String(en), spacing:{ after:60 } }));
+    if (zh) children.push(new Paragraph({ children:[new TextRun({ text: String(zh), color:zhColor })], spacing:{ after:120 } }));
+  };
+  const bullet = (en, zh) => {
+    if (en) children.push(new Paragraph({ text: String(en), bullet:{ level:0 } }));
+    if (zh) children.push(new Paragraph({ children:[new TextRun({ text: String(zh), color:zhColor })], bullet:{ level:0 } }));
+  };
+  // A standalone paragraph containing a clickable hyperlink
+  const hyperlinkPara = (label, url, opts={}) => new Paragraph({
+    children:[ new ExternalHyperlink({ link:url, children:[ new TextRun({ text:String(label||url), color:linkColor, underline:{ type:'single' }, size:opts.size||20 }) ] }) ],
+    spacing:{ after: opts.after ?? 60 },
+  });
+  // Paragraph(s) for a table cell — EN line + optional ZH line
+  const cellLines = (en, zh) => {
+    const ps = [];
+    if (en) ps.push(new Paragraph({ children:[new TextRun({ text:String(en), size:20 })] }));
+    if (zh) ps.push(new Paragraph({ children:[new TextRun({ text:String(zh), color:zhColor, size:18 })] }));
+    if (!ps.length) ps.push(new Paragraph({ text:'' }));
+    return ps;
+  };
+  // Append a simple bordered table with a dark header row
+  const makeTable = (headers, rows, colWidths) => {
+    const w = i => ({ size: colWidths ? colWidths[i] : Math.floor(100/headers.length), type: WidthType.PERCENTAGE });
+    const headerRow = new TableRow({ tableHeader:true, children: headers.map((hd,i) => new TableCell({
+      width: w(i),
+      shading: { fill:'0D1B3E', type:ShadingType.CLEAR, color:'auto' },
+      children: [new Paragraph({ children:[new TextRun({ text:hd, bold:true, color:'FFFFFF', size:20 })] })],
+    })) });
+    const bodyRows = rows.map(cells => new TableRow({ children: cells.map((c,i) => new TableCell({
+      width: w(i),
+      children: Array.isArray(c) ? c : cellLines(c, ''),
+    })) }));
+    children.push(new Table({ width:{ size:100, type:WidthType.PERCENTAGE }, rows:[headerRow, ...bodyRows] }));
+    children.push(new Paragraph({ text:'', spacing:{ after:120 } }));
+  };
+
+  // ── Title page ──
+  children.push(new Paragraph({ children:[new TextRun({ text:'EXECUTIVE ACCOUNT PLAN · 高管账户计划', bold:true, color:'D4860A' })], alignment:AlignmentType.CENTER, spacing:{ before:2400, after:200 } }));
+  children.push(new Paragraph({ text: od.companyName || D.target || '', heading: HeadingLevel.TITLE, alignment:AlignmentType.CENTER }));
+  if (od.companyNameZh) children.push(new Paragraph({ children:[new TextRun({ text: od.companyNameZh, size:32, color:zhColor })], alignment:AlignmentType.CENTER, spacing:{ after:160 } }));
+  children.push(new Paragraph({ children:[new TextRun({ text: `Prepared by ${D.seller||''} · Strategic Account Intelligence · ${new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})}`, color:'64748B' })], alignment:AlignmentType.CENTER, spacing:{ after:160 } }));
+  if (isUrl(D.turl)) children.push(new Paragraph({ children:[new ExternalHyperlink({ link:D.turl, children:[new TextRun({ text:`${D.target}: ${D.turl}`, color:linkColor, underline:{type:'single'}, size:18 })] })], alignment:AlignmentType.CENTER, spacing:{ after:40 } }));
+  if (isUrl(D.surl)) children.push(new Paragraph({ children:[new ExternalHyperlink({ link:D.surl, children:[new TextRun({ text:`${D.seller}: ${D.surl}`, color:linkColor, underline:{type:'single'}, size:18 })] })], alignment:AlignmentType.CENTER, spacing:{ after:40 } }));
+  children.push(new Paragraph({ children:[new PageBreak()] }));
+
+  // ── Table of contents ──
+  children.push(new Paragraph({ text:'Table of Contents · 目录', heading:HeadingLevel.HEADING_1, spacing:{ after:80 } }));
+  children.push(new Paragraph({ children:[new TextRun({ text:'Right-click and choose "Update Field" after opening in Word to populate · 在Word中打开后右键选择"更新域"以生成目录', italics:true, color:'94A3B8', size:18 })], spacing:{ after:200 } }));
+  children.push(new TableOfContents('Table of Contents', { hyperlink:true, headingStyleRange:'1-2' }));
+  children.push(new Paragraph({ children:[new PageBreak()] }));
+
+  // 01 Company Overview
+  setPptProg(10, 'Company overview · 公司概述…');
+  h1('01 · Company Overview', '公司概述');
+  const prof = od.profile||{};
+  [['Founded','成立',prof.founded,prof.foundedZh],
+   ['Headquarters','总部',prof.headquarters,prof.headquartersZh],
+   ['CEO','CEO',prof.ceo,prof.ceoZh],
+   ['Employees','员工',prof.employees,prof.employeesZh],
+   ['Revenue','收入',prof.revenue,prof.revenueZh],
+   ['Operations','运营',prof.countries,prof.countriesZh]].forEach(([kEn,kZh,vEn,vZh])=>{
+     if (!vEn) return;
+     para(`${kEn}: ${vEn}`, vZh ? `${kZh}：${vZh}` : '');
+   });
+  if (prof.website) {
+    if (isUrl(prof.website)) children.push(hyperlinkPara(`Website: ${prof.website}`, prof.website));
+    else para(`Website: ${prof.website}`, '');
+  }
+  (od.segments||[]).forEach(seg=>{
+    h2(`${seg.pct?seg.pct+' · ':''}${seg.name||''}`.trim(), seg.nameZh||'');
+    para(seg.desc, seg.descZh);
+  });
+  if (od.quote) para(`"${od.quote}"`, od.quoteZh ? `"${od.quoteZh}"` : '');
+
+  // 02 Financial Snapshot
+  setPptProg(18, 'Financial snapshot · 财务概况…');
+  h1('02 · Financial Snapshot', '财务概况');
+  if ((fd.kpis||[]).length) {
+    makeTable(
+      ['Metric · 指标', 'Value · 数值', 'Detail · 说明', 'Source · 来源'],
+      fd.kpis.map(k => [
+        cellLines(k.label, k.labelZh),
+        cellLines(k.value, ''),
+        cellLines(k.sub, k.subZh),
+        isUrl(k.sourceUrl) ? [hyperlinkPara(k.sourceName||k.sourceUrl, k.sourceUrl, {after:0})] : cellLines(k.sourceName, ''),
+      ]),
+      [22, 14, 38, 26]
+    );
+  }
+  h2('Financial Analysis','财务分析'); para(fd.context, fd.contextZh);
+  h2('Industry & Market','行业与市场'); para(fd.industry, fd.industryZh); para(fd.market, fd.marketZh);
+
+  // 03 Recent News
+  setPptProg(26, 'Recent news · 近期新闻…');
+  h1('03 · Recent News & Developments', '近期新闻与动态');
+  (nd.news||[]).forEach(n=>{
+    h2(`${n.date?n.date+' — ':''}${n.headline||''}`, n.headlineZh||'');
+    para(n.summary, n.summaryZh);
+    if (n.source) {
+      if (isUrl(n.sourceUrl)) children.push(hyperlinkPara(`Source: ${n.source}`, n.sourceUrl));
+      else para(`Source: ${n.source}`, '');
+    }
+  });
+
+  // 04 Strategic Priorities
+  setPptProg(34, 'Strategic priorities · 战略重点…');
+  h1('04 · Business Priorities & Strategic Agenda', '业务重点与战略议程');
+  (sd.priorities||[]).forEach((p,i)=>{
+    h2(`${i+1}. ${p.title||''}`, p.titleZh||'');
+    para(p.body, p.bodyZh);
+  });
+
+  // 05 Program Numbers
+  setPptProg(42, 'Program numbers · 项目数据…');
+  h1('05 · Program Numbers & Metrics', '项目数据与指标');
+  (sd.techNumbers||[]).forEach(n=>{
+    bullet(`${n.value||''} — ${n.desc||''}`, n.descZh||'');
+  });
+
+  // 06 Active Investments & Buying Signals
+  setPptProg(50, 'Active investments · 当前投资…');
+  h1('06 · Active Investments & Buying Signals', '当前投资与购买信号');
+  (sd.techInvestments||[]).forEach(t=>{
+    h2(t.category||'', t.categoryZh||'');
+    (t.items||[]).forEach((it,i)=> bullet(it, (t.itemsZh||[])[i]||''));
+  });
+  if (sd.signals || sd.signalsZh) {
+    h2('Buying Signals & Triggers','购买信号与触发点');
+    para(sd.signals, sd.signalsZh);
+  }
+
+  // 07 Competitive Landscape
+  setPptProg(58, 'Competitive landscape · 竞争格局…');
+  h1('07 · Competitive Landscape', '竞争格局');
+  if ((cd.competitors||[]).length) {
+    makeTable(
+      ['Competitor · 竞争对手', 'Threat · 威胁等级', 'Their Strengths · 优势', 'Our Advantage · 我方优势'],
+      cd.competitors.map(c => [
+        cellLines(c.name, ''),
+        cellLines(c.threat, ''),
+        cellLines(c.strengths, c.strengthsZh),
+        cellLines(c.advantage, c.advantageZh),
+      ]),
+      [18, 14, 34, 34]
+    );
+  }
+  if (cd.differentiation) { h2('Our Differentiation','我们的差异化'); para(cd.differentiation, cd.differentiationZh); }
+
+  // 08 Pain Points
+  setPptProg(66, 'Pain points · 痛点…');
+  h1('08 · Pain Points & Challenges', '痛点与挑战');
+  (cd.pains||[]).forEach(p=>{
+    h2(`${p.title||''}${p.urgency?'  ['+p.urgency+']':''}`, p.titleZh||'');
+    para(p.body, p.bodyZh);
+  });
+
+  // 09 Value Proposition
+  setPptProg(74, 'Value proposition · 价值主张…');
+  h1('09 · Value Proposition', '价值主张');
+  (sal.valueProps||[]).forEach(v=>{
+    h2(v.title||'', v.titleZh||'');
+    if (v.match || v.matchZh) para(v.match?`Match: ${v.match}`:'', v.matchZh?`匹配：${v.matchZh}`:'');
+    para(v.body, v.bodyZh);
+    if (v.segment) para(`Segment: ${v.segment}`, '');
+  });
+
+  // 10 Stakeholders
+  setPptProg(82, 'Stakeholders · 利益相关者…');
+  h1('10 · Stakeholder Map', '利益相关者地图');
+  (sal.stakeholders||[]).forEach(sh=>{
+    h2(`${sh.name||''}${sh.title?' — '+sh.title:''}${sh.priority?'  ['+sh.priority+']':''}`, sh.titleZh||'');
+    para(sh.msg, sh.msgZh);
+  });
+
+  // 11 Next Steps
+  setPptProg(90, 'Next steps · 后续行动…');
+  h1('11 · Recommended Next Steps', '建议后续行动');
+  (sal.phases||[]).forEach(ph=>{
+    h2(`${ph.phase?ph.phase+' — ':''}${ph.name||''}${ph.period?' ('+ph.period+')':''}`, `${ph.phaseZh||''}${ph.nameZh?' '+ph.nameZh:''}`);
+    (ph.actions||[]).forEach((a,i)=> bullet(a, (ph.actionsZh||[])[i]||''));
+  });
+
+  // 12 Account Goal & Open Questions
+  setPptProg(96, 'Finalizing · 收尾…');
+  h1('12 · Account Goal & Open Questions', '账户目标与待解问题');
+  h2('Account Goal','账户目标'); para(sal.goal, sal.goalZh);
+  h2('Discovery Questions','调研问题'); para(sal.questions, sal.questionsZh);
+
+  // 13 Sources & Citations
+  setPptProg(98, 'Sources & citations · 来源与引用…');
+  h1('13 · Sources & Citations', '来源与引用');
+  [
+    { label:'Company Overview · 公司概述', data: od },
+    { label:'Financial Data · 财务数据',   data: fd },
+    { label:'Strategy & Tech · 战略技术',  data: sd },
+    { label:'Recent News · 近期新闻',      data: nd },
+    { label:'Competitive · 竞争分析',      data: cd },
+    { label:'Stakeholders · 利益相关者',   data: sal },
+  ].forEach(sec => {
+    const sources = (sec.data && sec.data.sources) || [];
+    if (!sources.length) return;
+    h2(sec.label, '');
+    sources.forEach(src => {
+      if (isUrl(src.url)) children.push(hyperlinkPara(src.name||src.url, src.url, {after:40}));
+      else para(src.name||'Unknown', '');
+    });
+  });
+
+  const doc = new Document({ sections: [{ children }] });
+  setPptProg(98, 'Saving file · 保存文件…');
+  const blob = await Packer.toBlob(doc);
+  triggerDownload(blob, buildFilename('docx'));
+  setPptProg(100, 'Download complete · 下载完成 ✅');
+}
+
+/* ════ PDF EXPORT ════ */
+async function exportPdf() {
+  if (typeof html2canvas === 'undefined') throw new Error('html2canvas library not loaded. Check /vendor/html2canvas.');
+  if (typeof window.jspdf === 'undefined') throw new Error('jsPDF library not loaded. Check /vendor/jspdf.');
+  const { jsPDF } = window.jspdf;
+  const report = document.getElementById('report');
+
+  setPptProg(5, 'Rendering report · 正在渲染报告…');
+  // Hide the export modal (and any other fixed-position overlays) so they
+  // don't get captured by html2canvas — fixed-position elements render at
+  // viewport coordinates and can bleed into the cropped #report screenshot.
+  const modal = document.getElementById('pptModal');
+  const modalWasShown = modal && modal.classList.contains('show');
+  if (modalWasShown) modal.classList.remove('show');
+  document.body.classList.add('pdf-capture');
+  await new Promise(r=>setTimeout(r, 50)); // allow layout to settle
+
+  let canvas;
+  try {
+    canvas = await html2canvas(report, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+  } finally {
+    document.body.classList.remove('pdf-capture');
+    if (modalWasShown) modal.classList.add('show');
+  }
+  setPptProg(60, 'Building PDF pages · 正在生成PDF页面…');
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const imgW = pageW;
+  const imgH = canvas.height * (imgW / canvas.width);
+  const imgData = canvas.toDataURL('image/png');
+
+  let heightLeft = imgH;
+  let position = 0;
+  pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+  heightLeft -= pageH;
+  while (heightLeft > 0) {
+    position -= pageH;
+    pdf.addPage();
+    pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+    heightLeft -= pageH;
+    setPptProg(Math.min(95, 60 + Math.round(((imgH-heightLeft)/imgH)*35)), 'Building PDF pages · 正在生成PDF页面…');
+  }
+  setPptProg(98, 'Saving file · 保存文件…');
+  pdf.save(buildFilename('pdf'));
+  setPptProg(100, 'Download complete · 下载完成 ✅');
+}
+
+/* ════ REPORT REPOSITORY ════ */
+let _repoSearchTimer=null;
+function openRepoModal(){
+  document.getElementById('repoModal').classList.add('show');
+  const errBox=document.getElementById('repoLoadError');
+  if(errBox) errBox.style.display='none';
+  searchRepo();
+}
+function closeRepoModal(){ document.getElementById('repoModal').classList.remove('show'); }
+function searchRepo(){
+  clearTimeout(_repoSearchTimer);
+  _repoSearchTimer=setTimeout(async ()=>{
+    const q=(document.getElementById('repoSearch')||{}).value||'';
+    const list=document.getElementById('repoList');
+    list.innerHTML='<div class="repo-empty">Loading… · 加载中…</div>';
+    try{
+      const r=await fetch(getBase()+'/api/reports'+(q?('?q='+encodeURIComponent(q)):''));
+      if(!r.ok) throw new Error('Server error '+r.status);
+      const data=await r.json();
+      if(!data.ok) throw new Error(data.error||'Unknown error');
+      renderRepoList(data.reports||[]);
+    }catch(e){
+      list.innerHTML='<div class="repo-error">⚠️ Could not load repository · 无法加载报告库 — '+esc(e.message)+'</div>';
+    }
+  },250);
+}
+function renderRepoList(reports){
+  const list=document.getElementById('repoList');
+  if(!reports.length){ list.innerHTML='<div class="repo-empty">No saved reports found. · 暂无已保存报告。</div>'; return; }
+  list.innerHTML=reports.map(r=>{
+    const live=Object.values(r.sections||{}).filter(v=>v==='live').length;
+    const total=Object.keys(r.sections||{}).length||6;
+    const date=new Date(r.createdAt).toLocaleString();
+    const cost=r.usage?` &nbsp;·&nbsp; ${esc(r.usage.model||'')} · ${r.usage.apiCalls||0} calls · ${(r.usage.totalTokens||0).toLocaleString()} tok · $${(r.usage.costUSD||0).toFixed(4)}`:'';
+    const companyName=[r.companyName,r.companyNameZh].filter(Boolean).map(esc).join(' · ')||'—';
+    const companyUrl=r.turl?`<a href="${esc(r.turl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(r.turl)}</a>`:'—';
+    const reportType=esc(r.reportType||'Executive Account Plan · 高管账户计划');
+    return `<div class="repo-item">
+      <div class="repo-item-main">
+        <div class="repo-item-title">
+          <a class="repo-target-link" onclick="loadReportFromRepo('${esc(r.id)}')" title="Load this report · 加载此报告">${esc(r.target)}${r.targetZh?(' · '+esc(r.targetZh)):''}</a>
+          <span class="repo-ver">v${r.version}</span>
+        </div>
+        <div class="repo-item-grid">
+          <div class="repo-field"><span class="repo-field-label">Company Name · 公司名称</span>${companyName}</div>
+          <div class="repo-field"><span class="repo-field-label">Company URL · 公司网址</span>${companyUrl}</div>
+          <div class="repo-field"><span class="repo-field-label">Report Type · 报告类型</span>${reportType}</div>
+          <div class="repo-field"><span class="repo-field-label">Created · 创建时间</span>${esc(date)}</div>
+        </div>
+        <div class="repo-item-sub">Seller · 销售方: ${esc(r.seller)} &nbsp;·&nbsp; ${live}/${total} sections live${cost}</div>
+      </div>
+      <div class="repo-item-actions">
+        <button class="repo-btn repo-load" onclick="loadReportFromRepo('${esc(r.id)}')">Load · 加载</button>
+        <button class="repo-btn repo-del" onclick="deleteReportFromRepo('${esc(r.id)}')">Delete · 删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function loadReportFromRepo(id){
+  const errBox=document.getElementById('repoLoadError');
+  if(errBox) errBox.style.display='none';
+  try{
+    const r=await fetch(getBase()+'/api/reports/'+encodeURIComponent(id));
+    if(!r.ok) throw new Error('Server error '+r.status);
+    const data=await r.json();
+    if(!data.ok||!data.report) throw new Error(data.error||'Report not found');
+    const D=data.report;
+    document.getElementById('inp-target').value=D.target||'';
+    document.getElementById('inp-target-url').value=D.turl||'';
+    document.getElementById('inp-seller').value=D.seller||'';
+    document.getElementById('inp-seller-url').value=D.surl||'';
+    _currentData=D; _pptData=D;
+    render(D);
+    document.getElementById('report').classList.add('show');
+    closeRepoModal();
+    document.getElementById('report').scrollIntoView({behavior:'smooth',block:'start'});
+    updatePptButton();
+
+    document.getElementById('progWrap').classList.add('show');
+    setProg(100, `Loaded from repository · 已从报告库加载 (v${D.version||1})`, '#0369A1');
+    showBanner(
+      `<div style="font-weight:700;margin-bottom:6px">✅ Report loaded from repository. · 报告已从报告库加载。</div>`
+      + `<div style="font-size:12px">Showing the saved report for <strong>${esc(D.target)}</strong> / <strong>${esc(D.seller)}</strong> `
+      + `(v${D.version||1}, saved ${new Date(D.createdAt).toLocaleString()}). No Claude API calls were made. `
+      + `You can edit this report and export it to PPT, Word, or PDF.</div>`,
+      '#E0F2FE', '#BAE6FD', '#0C4A6E');
+  }catch(e){
+    if(errBox){
+      errBox.style.display='block';
+      errBox.textContent='⚠️ Failed to load report · 加载报告失败: '+e.message;
+    }
+  }
+}
+async function deleteReportFromRepo(id){
+  if(!confirm('Delete this saved report? · 删除此已保存报告吗？')) return;
+  try{
+    const r=await fetch(getBase()+'/api/reports/'+encodeURIComponent(id),{method:'DELETE'});
+    if(!r.ok) throw new Error('Server error '+r.status);
+    searchRepo();
+  }catch(e){
+    alert('Failed to delete report · 删除报告失败: '+e.message);
+  }
+}
+async function saveCurrentReport(){
+  if(!_currentData || !_currentData.target){ alert('Generate a report first · 请先生成报告'); return; }
+  const btn=document.getElementById('btnSaveRepo');
+  const origText=btn.textContent;
+  btn.disabled=true; btn.textContent='Saving… · 保存中…';
+  try{
+    const r=await fetch(getBase()+'/api/reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_currentData)});
+    const data=await r.json();
+    if(!r.ok||!data.ok) throw new Error(data.error||('Server error '+r.status));
+    btn.textContent='✅ Saved v'+data.version;
+  }catch(e){
+    alert('Failed to save report · 保存报告失败: '+e.message);
+    btn.textContent=origText;
+  }finally{
+    setTimeout(()=>{ btn.disabled=false; btn.textContent=origText; },2000);
+  }
+}
+
+/* ════ INIT ════ */
+function initApp() {
+  // Default the backend URL to wherever this page was served from, so a
+  // deployed instance (e.g. on Render) talks to itself instead of localhost.
+  const epInput = document.getElementById('inp-ep');
+  if (epInput && !epInput.value.trim()) {
+    const origin = window.location.origin;
+    epInput.value = (origin && origin.startsWith('http')) ? origin : 'http://localhost:3000';
+  }
+
+  // API config toggle
+  const tog = document.getElementById('apiToggle');
+  if (tog) tog.addEventListener('click', () => {
+    document.getElementById('apiBody').classList.toggle('open');
+    tog.classList.toggle('open');
+  });
+
+  // Saved companies dropdown
+  renderSavedDropdown();
+
+  // Disable PPT until report generated
+  updatePptButton();
+
+  // Auto server-check on load
+  setTimeout(checkServer, 300);
+
+  console.log('[initApp] ✅ ready');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+/* ════ REUSE EXISTING REPORT ════ */
+// Look for a previously saved report matching target+seller and load it
+// without calling Claude at all. Returns true if a report was loaded.
+async function tryLoadExistingReport(target, seller) {
+  try {
+    const key = `${slugify(target)}__${slugify(seller)}`;
+    const r = await fetch(`${getBase()}/api/reports?q=${encodeURIComponent(target)}`);
+    if (!r.ok) return false;
+    const data = await r.json();
+    if (!data.ok) return false;
+    const match = (data.reports||[]).find(rep => rep.key === key);
+    if (!match) return false;
+
+    const r2 = await fetch(`${getBase()}/api/reports/${encodeURIComponent(match.id)}`);
+    if (!r2.ok) return false;
+    const data2 = await r2.json();
+    if (!data2.ok || !data2.report) return false;
+    const D = data2.report;
+
+    const prevUsage = D._usage || {};
+    const savedCost = (match.usage && match.usage.costUSD) || prevUsage.costUSD || 0;
+    D._usage = {
+      model: prevUsage.model || (match.usage && match.usage.model) || '',
+      apiCalls: 0, inputTokens: 0, outputTokens: 0, costUSD: 0,
+      bySection: Object.fromEntries(Object.entries(prevUsage.bySection || {}).map(([id,s]) =>
+        [id, { ...s, apiCalls:0, inputTokens:0, outputTokens:0, costUSD:0, reused:true }])),
+      generationTimeMs: 0,
+      reusedSections: 6,
+      estimatedSavingsUSD: savedCost,
+      estimatedSavingsPct: 100,
+    };
+    _currentData = D; _pptData = D;
+    render(D);
+    document.getElementById('report').classList.add('show');
+    document.getElementById('report').scrollIntoView({ behavior:'smooth', block:'start' });
+    updatePptButton();
+    setProg(100, `Loaded from repository · 已从报告库加载 (v${match.version})`, '#0369A1');
+    showBanner(
+      `<div style="font-weight:700;margin-bottom:6px">📚 Loaded existing report from repository · 已从报告库加载现有报告</div>`
+      + `<div style="font-size:12px">A saved report for <strong>${esc(target)}</strong> / <strong>${esc(seller)}</strong> already exists `
+      + `(v${match.version}, saved ${new Date(match.createdAt).toLocaleDateString()}). No new Claude API calls were made. `
+      + `Click <strong>🔄 Regenerate</strong> to refresh with live research.</div>`,
+      '#E0F2FE', '#BAE6FD', '#0C4A6E');
+    return true;
+  } catch(e) {
+    console.warn('[generate] repository lookup failed:', e.message);
+    return false;
+  }
+}
+
+/* ════ GENERATE ════ */
+async function generate(forceRefresh = false) {
+  const target = document.getElementById('inp-target').value.trim();
+  const turl   = document.getElementById('inp-target-url').value.trim();
+  const seller = document.getElementById('inp-seller').value.trim();
+  const surl   = document.getElementById('inp-seller-url').value.trim();
+  if (!target || !seller) { alert('Please enter both company names. · 请输入两个公司名称。'); return; }
+
+  const btn = document.getElementById('btnGen');
+  btn.disabled = true;
+  document.getElementById('bTxt').textContent = 'Researching… · 研究中…';
+  document.getElementById('bIcon').textContent = '⏳';
+  document.getElementById('progWrap').classList.add('show');
+  document.getElementById('report').classList.remove('show');
+  clearError();
+  initSteps();
+  setProg(0, 'Starting · 开始');
+  const oldR = document.getElementById('retryAllBtn'); if (oldR) oldR.remove();
+
+  // Save target company to localStorage
+  saveCompany();
+
+  // Reuse a previously saved report instead of calling Claude again
+  if (!forceRefresh) {
+    setProg(2, 'Checking report repository · 检查报告库…');
+    if (await tryLoadExistingReport(target, seller)) {
+      btn.disabled = false;
+      document.getElementById('bTxt').textContent = 'Regenerate · 重新生成';
+      document.getElementById('bIcon').textContent = '🔄';
+      return;
+    }
+  }
+
+  // Fallback defaults (shown if a step fails)
+  let od  = fallback(target, turl);
+  let fd  = fallbackFd();
+  let sd  = fallbackSd();
+  let nd  = fallbackNd();
+  let cd  = fallbackCd(target, seller);
+  let sal = fallbackSal(target, seller);
+
+  const results = { s1:'fallback',s2:'fallback',s3:'fallback',s4:'fallback',s5:'fallback',s6:'fallback' };
+  const _genStartTime = Date.now();
+  const cacheKey = `${slugify(target)}__${slugify(seller)}`;
+  const _usageTotals = { model:'', apiCalls:0, inputTokens:0, outputTokens:0, costUSD:0, bySection:{}, generationTimeMs:0, reusedSections:0, estimatedSavingsUSD:0, estimatedSavingsPct:0 };
+
+  function recordUsage(id, label, resp) {
+    if (!resp || !resp.usage) return;
+    _usageTotals.model = resp.model || _usageTotals.model;
+    _usageTotals.apiCalls     += resp.apiCalls || 0;
+    _usageTotals.inputTokens  += resp.usage.inputTokens  || 0;
+    _usageTotals.outputTokens += resp.usage.outputTokens || 0;
+    _usageTotals.costUSD      += resp.costUSD || 0;
+    const sec = _usageTotals.bySection[id] || { label, apiCalls:0, inputTokens:0, outputTokens:0, costUSD:0 };
+    sec.label = label;
+    sec.apiCalls     += resp.apiCalls || 0;
+    sec.inputTokens  += resp.usage.inputTokens  || 0;
+    sec.outputTokens += resp.usage.outputTokens || 0;
+    sec.costUSD      += resp.costUSD || 0;
+    _usageTotals.bySection[id] = sec;
+  }
+
+  async function runStep(id, label, promptFn, onSuccess, prog) {
+    setStepUI(id, 'run');
+    setProg(prog, label);
+    console.log(`[generate] ${id}: ${label}`);
+
+    // Reuse cached research for this section instead of calling Claude again
+    if (!forceRefresh) {
+      const cached = await fetchResearchCache(id, cacheKey);
+      if (cached && cached.found) {
+        onSuccess(cached.data);
+        setStepUI(id, 'done');
+        results[id] = 'success';
+        _usageTotals.reusedSections++;
+        _usageTotals.estimatedSavingsUSD += cached.costUSD || 0;
+        _usageTotals.bySection[id] = { label, apiCalls:0, inputTokens:0, outputTokens:0, costUSD:0, reused:true };
+        console.log(`[generate] ${id} ♻ reused from cache`);
+        return;
+      }
+    }
+
+    try {
+      const resp   = await callStep(promptFn(), true);
+      recordUsage(id, label, resp);
+      const parsed = pJSON(resp.text);
+      onSuccess(parsed);
+      setStepUI(id, 'done');
+      results[id] = 'success';
+      console.log(`[generate] ${id} ✅`);
+      saveResearchCache(id, cacheKey, parsed, resp.costUSD);
+    } catch(e) {
+      console.error(`[generate] ${id} ❌`, e.message);
+      setStepUI(id, 'fallback', e.message);
+      results[id] = 'fallback';
+      addRetryBtn(id, async () => {
+        setStepUI(id, 'run');
+        try {
+          const resp2   = await callStep(promptFn(), true);
+          recordUsage(id, label, resp2);
+          const parsed2 = pJSON(resp2.text);
+          onSuccess(parsed2);
+          setStepUI(id, 'done');
+          results[id] = 'success';
+          document.getElementById('retry-'+id)?.remove();
+          saveResearchCache(id, cacheKey, parsed2, resp2.costUSD);
+          if (_currentData) { _currentData = Object.assign(_currentData, { od, fd, sd, nd, cd, sal, _sectionStatus: results, _usage: _usageTotals }); _pptData = _currentData; render(_currentData); }
+        } catch(e2) {
+          console.error(`[generate] retry ${id} ❌`, e2.message);
+          setStepUI(id, 'fallback', e2.message);
+        }
+      });
+    }
+  }
+
+  try {
+    await runStep('s1','Company overview · 公司概述',       ()=>P_overview(target,turl,seller,surl), p=>{od=p;},   5);  setProg(18);
+    await runStep('s2','Financials · 财务数据',             ()=>P_financials(target,turl),           p=>{fd=p;},  20);  setProg(35);
+    await runStep('s3','Strategy & technology · 战略与技术',()=>P_strategy(target,turl),             p=>{sd=p;},  37);  setProg(52);
+    await runStep('s4','Recent news · 近期新闻',            ()=>P_news(target,turl),                 p=>{nd=p;},  54);  setProg(66);
+    await runStep('s5','Competitive & pain points · 竞争',  ()=>P_competitive(target,seller,turl),   p=>{cd=p;},  68);  setProg(82);
+    await runStep('s6','Stakeholders · 利益相关者',         ()=>P_sales(target,seller,turl,surl),    p=>{sal=p;}, 84);  setProg(95);
+  } catch(fatal) {
+    console.error('[generate] fatal:', fatal);
+  }
+
+  // Validation
+  flagUnavailableFields({ od, fd, sd, nd, cd, sal });
+
+  _usageTotals.generationTimeMs = Date.now() - _genStartTime;
+  const _potentialCost = _usageTotals.costUSD + _usageTotals.estimatedSavingsUSD;
+  _usageTotals.estimatedSavingsPct = _potentialCost > 0 ? (_usageTotals.estimatedSavingsUSD / _potentialCost) * 100 : 0;
+
+  const D = { target, turl, seller, surl, od, fd, sd, nd, cd, sal, _sectionStatus: results, _usage: _usageTotals };
+  _currentData = D;
+  _pptData     = D;
+  render(D);
+
+  document.getElementById('report').classList.add('show');
+  document.getElementById('report').scrollIntoView({ behavior:'smooth', block:'start' });
+  updatePptButton();
+
+  const successCount  = Object.values(results).filter(v=>v==='success').length;
+  const fallbackCount = Object.values(results).filter(v=>v==='fallback').length;
+  const total         = Object.keys(results).length;
+
+  let statusText, statusColor;
+  if (successCount === total)   { statusText='Complete · 完成 ✅'; statusColor=''; }
+  else if (successCount === 0)  { statusText='Failed — server error or no API key · 失败'; statusColor='#B91C1C'; }
+  else                          { statusText=`Partially Complete · 部分完成 — ${successCount}/${total} sections live`; statusColor='#D97706'; }
+  setProg(100, statusText, statusColor);
+
+  if (fallbackCount > 0) {
+    const failedLabels = Object.entries(results).filter(([,v])=>v==='fallback')
+      .map(([k]) => STEPS.find(s=>s.id===k)?.label || k).join(', ');
+    let banner = `<div style="font-weight:700;margin-bottom:6px">${successCount===0?'❌':'⚠️'} ${statusText}</div>`
+      + `<div style="margin-bottom:8px;font-size:12px">Fallback content used for: <strong>${failedLabels}</strong>. `
+      + `Click ↺ Retry next to each, or edit cells manually.</div>`
+      + `<div style="font-size:11px;color:#0C4A6E">💡 Check server terminal for detailed error logs · 查看服务器终端获取详细错误日志</div>`;
+    if (successCount === 0) {
+      banner += `<div style="margin-top:10px;padding:10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:12px;color:#1E40AF">
+        <strong>🔧 Troubleshoot · 排查步骤</strong><br>
+        1. Is the server running? → <code>node server.js</code><br>
+        2. Is ANTHROPIC_API_KEY set in <code>.env</code>?<br>
+        3. Check the server terminal for error messages.<br>
+        4. Click <strong>↺ Recheck</strong> in API Configuration above.
+      </div>`;
+    }
+    const bg = successCount===0?'#FEE2E2':'#FEF3C7';
+    const bo = successCount===0?'#FCA5A5':'#FCD34D';
+    const tx = successCount===0?'#7F1D1D':'#92400E';
+    showBanner(banner, bg, bo, tx);
+    addRetryAllBtn(async () => {
+      const btn2 = document.getElementById('retryAllBtn');
+      if (btn2) btn2.textContent = 'Retrying… · 重试中…';
+      const failedNow = Object.entries(results).filter(([,v])=>v==='fallback').map(([k])=>k);
+      for (const id of failedNow) {
+        document.getElementById('retry-'+id)?.click();
+        await new Promise(r=>setTimeout(r,1200));
+      }
+      if (btn2) btn2.textContent = '↺ Retry Failed Sections · 重试失败的部分';
+    });
+  }
+
+  btn.disabled = false;
+  document.getElementById('bTxt').textContent = 'Regenerate · 重新生成';
+  document.getElementById('bIcon').textContent = '🔄';
+}
+async function exportPptBrowser() {
+  if (typeof PptxGenJS === 'undefined') throw new Error('PptxGenJS library not loaded. Check CDN connection.');
+
+  const D     = _pptData;
+  const od    = D.od    || {};
+  const fd    = D.fd    || {};
+  const sd    = D.sd    || {};
+  const nd    = D.nd    || {};
+  const cd    = D.cd    || {};
+  const sal   = D.sal   || {};
+
+  const prs = new PptxGenJS();
+  prs.layout = 'LAYOUT_WIDE';   // 13.3" × 7.5"
+  prs.title  = `${D.seller} × ${D.target} Account Plan`;
+
+  /* ── Design tokens ── */
+  const C = {
+    navy:      '0D1B3E',
+    navyMid:   '1E2F5C',
+    navyLight: '2D4278',
+    amber:     'D4860A',
+    amberPale: 'FEF3C7',
+    teal:      '0369A1',
+    tealPale:  'E0F2FE',
+    green:     '15803D',
+    red:       'B91C1C',
+    white:     'FFFFFF',
+    offWhite:  'F8FAFC',
+    gray100:   'F1F5F9',
+    gray200:   'E2E8F0',
+    gray500:   '64748B',
+    gray700:   '334155',
+    gray900:   '0F172A',
+    zhBlue:    '1D4ED8',
+    purple:    '6D28D9',
+  };
+
+  const W = 13.3, H = 7.5;
+  const FONT_EN = 'Calibri';
+  const FONT_ZH = 'Calibri';   // renders CJK in Office; user can swap to SimSun etc.
+
+  const mkShadow = () => ({ type:'outer', color:'000000', blur:6, offset:2, angle:45, opacity:0.10 });
+
+  /* ── Slide helpers ── */
+  function slideHeader(s, num, titleEn, titleZh, badgeLabel, badgeColor) {
+    // Dark header bar
+    s.addShape(prs.shapes.RECTANGLE, { x:0, y:0, w:W, h:1.1, fill:{ color:C.navy }, line:{ color:C.navy } });
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.4, y:0.28, w:0.55, h:0.38, fill:{ color:C.amber }, line:{ color:C.amber }, rectRadius:0.04 });
+    s.addText(String(num).padStart(2,'0'), { x:0.4, y:0.28, w:0.55, h:0.38, fontSize:12, bold:true, color:C.navy, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+    s.addText(titleEn, { x:1.1, y:0.28, w:8, h:0.3, fontSize:17, bold:true, color:C.white, fontFace:FONT_EN, margin:0 });
+    s.addText(titleZh, { x:1.1, y:0.6,  w:8, h:0.26, fontSize:12, color:'93C5FD', fontFace:FONT_ZH, margin:0 });
+    if (badgeLabel) {
+      const bw = 1.5;
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:W-bw-0.3, y:0.33, w:bw, h:0.3, fill:{ color:badgeColor||C.teal }, line:{ color:badgeColor||C.teal }, rectRadius:0.04 });
+      s.addText(badgeLabel, { x:W-bw-0.3, y:0.33, w:bw, h:0.3, fontSize:9, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+    }
+    // Bottom rule
+    s.addShape(prs.shapes.RECTANGLE, { x:0, y:H-0.1, w:W, h:0.1, fill:{ color:C.amber }, line:{ color:C.amber } });
+    s.background = { color: C.offWhite };
+  }
+
+  function addBiBox(s, x, y, w, h, enVal, zhVal, labelEn, labelZh) {
+    const hw = (w - 0.08) / 2;
+    // EN pane
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x, y, w:hw, h, fill:{ color:C.white }, line:{ color:C.gray200 }, rectRadius:0.06, shadow:mkShadow() });
+    if (labelEn) s.addText('🇺🇸 ' + labelEn, { x:x+0.12, y:y+0.1, w:hw-0.24, h:0.22, fontSize:8, bold:true, color:C.gray500, fontFace:FONT_EN, margin:0 });
+    s.addText(enVal || '', { x:x+0.12, y:y+(labelEn?0.34:0.1), w:hw-0.24, h:h-(labelEn?0.46:0.22), fontSize:10.5, color:C.gray900, fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink' });
+    // ZH pane
+    const zx = x + hw + 0.08;
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:zx, y, w:hw, h, fill:{ color:C.tealPale }, line:{ color:'BAE6FD' }, rectRadius:0.06, shadow:mkShadow() });
+    if (labelZh) s.addText('🇨🇳 ' + labelZh, { x:zx+0.12, y:y+0.1, w:hw-0.24, h:0.22, fontSize:8, bold:true, color:C.teal, fontFace:FONT_ZH, margin:0 });
+    s.addText(zhVal || '', { x:zx+0.12, y:y+(labelZh?0.34:0.1), w:hw-0.24, h:h-(labelZh?0.46:0.22), fontSize:10.5, color:'0C4A6E', fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+  }
+
+  function addCard(s, x, y, w, h, opts = {}) {
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x, y, w, h,
+      fill:{ color: opts.fill || C.white },
+      line:{ color: opts.border || C.gray200 },
+      rectRadius: opts.radius || 0.08,
+      shadow: opts.shadow !== false ? mkShadow() : undefined,
+    });
+  }
+
+  // Split an array into chunks of `size`; always returns at least one (possibly empty) page
+  function paginate(arr, size) {
+    const items = arr || [];
+    if (!items.length) return [[]];
+    const pages = [];
+    for (let i = 0; i < items.length; i += size) pages.push(items.slice(i, i + size));
+    return pages;
+  }
+
+  // Turn a paragraph into a short list of bullet points (sentence-split, capped)
+  function toBullets(text, max = 3) {
+    if (!text) return [];
+    const parts = (text.match(/[^.!?。！？\n]+[.!?。！？]*/g) || [text])
+      .map(s => s.trim()).filter(Boolean);
+    return parts.slice(0, max);
+  }
+
+  // Single "Program Numbers" tile: value + bilingual description, auto-shrinking to fit
+  function addNumberTile(s, x, y, w, h, n) {
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x, y, w, h, fill:{ color:C.navyMid }, line:{ color:C.navyLight }, rectRadius:0.06, shadow:mkShadow() });
+    s.addText(n.value || '', { x:x+0.18, y:y+0.12, w:w-0.36, h:h*0.32, fontSize:22, bold:true, color:'FCD34D', fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink', valign:'middle' });
+    s.addText(n.desc || '', { x:x+0.18, y:y+h*0.40, w:w-0.36, h:h*0.30, fontSize:11, color:C.white, fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink', valign:'top' });
+    if (n.descZh) s.addText(n.descZh, { x:x+0.18, y:y+h*0.68, w:w-0.36, h:h*0.29, fontSize:10, color:'7DD3FC', fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink', valign:'top' });
+  }
+
+  const total = 13;
+  let slide_n = 0;
+
+  /* ════════════════════════════════════════
+     SLIDE 1 — COVER
+  ════════════════════════════════════════ */
+  setPptProg(5, 'Building cover slide · 封面幻灯片…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    s.background = { color: C.navy };
+    // Circle decoration
+    s.addShape(prs.shapes.OVAL, { x:9.5, y:-1.2, w:5.5, h:5.5, fill:{ color:C.navyMid }, line:{ color:C.navyMid } });
+    s.addShape(prs.shapes.OVAL, { x:10.1, y:-0.6, w:4.2, h:4.2, fill:{ color:C.navyLight }, line:{ color:C.navyLight } });
+    // Top amber stripe
+    s.addShape(prs.shapes.RECTANGLE, { x:0, y:0, w:W, h:0.1, fill:{ color:C.amber }, line:{ color:C.amber } });
+    // Tag
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.55, y:0.95, w:3.5, h:0.38, fill:{ color:C.amber }, line:{ color:C.amber }, rectRadius:0.05 });
+    s.addText('EXECUTIVE ACCOUNT PLAN · 高管账户计划', { x:0.55, y:0.95, w:3.5, h:0.38, fontSize:9, bold:true, color:C.navy, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+    // Company name EN
+    s.addText(od.companyName || D.target, { x:0.55, y:1.45, w:9.5, h:1.0, fontSize:46, bold:true, color:C.white, fontFace:FONT_EN, margin:0 });
+    // Company name ZH
+    s.addText(od.companyNameZh || '', { x:0.55, y:2.45, w:8, h:0.55, fontSize:26, color:'93C5FD', fontFace:FONT_ZH, margin:0 });
+    // Divider
+    s.addShape(prs.shapes.RECTANGLE, { x:0.55, y:3.1, w:3.8, h:0.04, fill:{ color:C.amber }, line:{ color:C.amber } });
+    // Meta
+    s.addText(`Prepared by ${D.seller}  ·  Strategic Account Intelligence  ·  ${new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})}`,
+      { x:0.55, y:3.24, w:10, h:0.3, fontSize:12, color:'94A3B8', fontFace:FONT_EN, margin:0 });
+    // Stat cards
+    const stats = od.stats || [];
+    const sc = [C.navyMid, C.navyLight, C.navyMid, C.amber];
+    stats.slice(0,4).forEach((st, i) => {
+      const bx = 0.55 + i * 3.15;
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:bx, y:3.75, w:3.0, h:1.3, fill:{ color:sc[i] }, line:{ color:sc[i] }, rectRadius:0.08 });
+      s.addText(st.value || '—', { x:bx, y:3.82, w:3.0, h:0.62, fontSize:26, bold:true, color: i===3?C.navy:'D4A017', fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+      s.addText(st.label || '', { x:bx, y:4.42, w:3.0, h:0.25, fontSize:10, color: i===3?C.navy:'94A3B8', fontFace:FONT_EN, align:'center', margin:0 });
+      s.addText(st.labelZh || '', { x:bx, y:4.65, w:3.0, h:0.25, fontSize:9, color: i===3?C.navyMid:'64748B', fontFace:FONT_ZH, align:'center', margin:0 });
+    });
+    // Bottom amber stripe
+    s.addShape(prs.shapes.RECTANGLE, { x:0, y:H-0.1, w:W, h:0.1, fill:{ color:C.amber }, line:{ color:C.amber } });
+    s.addNotes('Cover slide. Target: ' + D.target + ' · Seller: ' + D.seller);
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 2 — COMPANY OVERVIEW
+  ════════════════════════════════════════ */
+  setPptProg(15, 'Company overview · 公司概述…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    slideHeader(s, 1, 'Company Overview', '公司概述', '● Live Research', C.green);
+
+    const prof = od.profile || {};
+    const rows = [
+      ['Founded 成立', (prof.founded||'')+(prof.foundedZh?' · '+prof.foundedZh:'')],
+      ['HQ 总部',      (prof.headquarters||'')+(prof.headquartersZh?' · '+prof.headquartersZh:'')],
+      ['CEO',          (prof.ceo||'')+(prof.ceoZh?' · '+prof.ceoZh:'')],
+      ['Employees 员工',(prof.employees||'')+(prof.employeesZh?' · '+prof.employeesZh:'')],
+      ['Revenue 收入', (prof.revenue||'')+(prof.revenueZh?' · '+prof.revenueZh:'')],
+      ['Operations 运营',(prof.countries||'')+(prof.countriesZh?' · '+prof.countriesZh:'')],
+      ['Website', prof.website||''],
+    ].filter(([,v])=>v);
+
+    // Profile card (left)
+    addCard(s, 0.35, 1.25, 5.5, 5.5);
+    s.addText('🏢 Company Profile · 公司档案', { x:0.55, y:1.35, w:5.1, h:0.35, fontSize:12, bold:true, color:C.navy, fontFace:FONT_EN, margin:0 });
+    rows.forEach(([k,v], i) => {
+      const ry = 1.82 + i * 0.57;
+      s.addShape(prs.shapes.RECTANGLE, { x:0.42, y:ry, w:5.36, h:0.52, fill:{ color: i%2===0?C.gray100:C.white }, line:{ color:i%2===0?C.gray100:C.white } });
+      s.addText(k, { x:0.52, y:ry+0.06, w:1.6, h:0.4, fontSize:9.5, color:C.gray500, fontFace:FONT_EN, valign:'middle', margin:0 });
+      s.addText(v, { x:2.15, y:ry+0.06, w:3.55, h:0.4, fontSize:10, bold:true, color:C.gray900, fontFace:FONT_EN, valign:'middle', margin:0, wrap:true, fit:'shrink' });
+    });
+
+    // Segments (right)
+    addCard(s, 6.2, 1.25, 6.75, 5.5);
+    s.addText('🏭 Business Segments · 业务分部', { x:6.4, y:1.35, w:6.3, h:0.35, fontSize:12, bold:true, color:C.navy, fontFace:FONT_EN, margin:0 });
+    const segColors = [C.navy, C.teal, C.amber, C.navyLight];
+    (od.segments||[]).slice(0,4).forEach((seg, i) => {
+      const sy = 1.82 + i * 1.15;
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:6.3, y:sy, w:6.5, h:1.0, fill:{ color:C.gray100 }, line:{ color:C.gray200 }, rectRadius:0.06 });
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:6.3, y:sy, w:1.05, h:1.0, fill:{ color:segColors[i] }, line:{ color:segColors[i] }, rectRadius:0.06 });
+      s.addText(seg.pct||'', { x:6.3, y:sy, w:1.05, h:1.0, fontSize:18, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+      s.addText((seg.name||'') + (seg.nameZh?' · '+seg.nameZh:''), { x:7.45, y:sy+0.08, w:5.2, h:0.34, fontSize:12, bold:true, color:C.gray900, fontFace:FONT_ZH, margin:0 });
+      s.addText((seg.desc||'')+(seg.descZh?' · '+seg.descZh:''), { x:7.45, y:sy+0.46, w:5.2, h:0.46, fontSize:9.5, color:C.gray700, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+    });
+    // Quote
+    if (od.quote) {
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:6.3, y:5.62, w:6.5, h:0.72, fill:{ color:C.navy }, line:{ color:C.navy }, rectRadius:0.08 });
+      s.addText(`"${od.quote}"${od.quoteZh?' · "'+od.quoteZh+'"':''}`, { x:6.45, y:5.65, w:6.2, h:0.66, fontSize:9.5, italic:true, color:'FCD34D', fontFace:FONT_ZH, valign:'middle', margin:0, wrap:true, fit:'shrink' });
+    }
+    s.addNotes('Company overview: profile and segments.');
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 3 — FINANCIAL SNAPSHOT
+  ════════════════════════════════════════ */
+  setPptProg(25, 'Financial snapshot · 财务概况…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    slideHeader(s, 2, 'Financial Snapshot', '财务概况', '● Live Research', C.green);
+
+    const kpis = (fd.kpis||[]).slice(0,4);
+    const kColors = [C.navy, C.teal, C.navyLight, C.amber];
+    kpis.forEach((k, i) => {
+      const kx = 0.35 + i * 3.15;
+      const kc = k.color ? k.color.replace('#','') : kColors[i];
+      const isDark = !['D4860A','F5A623'].includes(kc);
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:kx, y:1.25, w:3.0, h:1.35, fill:{ color:kc }, line:{ color:kc }, rectRadius:0.08, shadow:mkShadow() });
+      s.addText(k.value||'—', { x:kx, y:1.33, w:3.0, h:0.62, fontSize:30, bold:true, color:isDark?C.white:C.navy, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+      s.addText((k.label||'')+(k.labelZh?' · '+k.labelZh:''), { x:kx, y:1.93, w:3.0, h:0.28, fontSize:10, color:isDark?'E2E8F0':'334155', fontFace:FONT_ZH, align:'center', margin:0 });
+      s.addText((k.sub||'')+(k.subZh?' · '+k.subZh:''), { x:kx, y:2.2, w:3.0, h:0.24, fontSize:9, color:isDark?'94A3B8':'92400E', fontFace:FONT_ZH, align:'center', margin:0 });
+    });
+
+    // Financial context bi-box
+    addBiBox(s, 0.35, 2.8, W-0.7, 2.0, fd.context||'', fd.contextZh||'', 'Financial Analysis', '财务分析');
+
+    // Market context bi-box
+    addBiBox(s, 0.35, 5.0, W-0.7, 1.9, (fd.industry||'') + '\n\n' + (fd.market||''), (fd.industryZh||'') + '\n\n' + (fd.marketZh||''), 'Industry & Market', '行业与市场');
+
+    s.addNotes('Financial snapshot: KPIs, context, and market overview.');
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 4 — RECENT NEWS
+  ════════════════════════════════════════ */
+  setPptProg(33, 'Recent news · 近期新闻…');
+  {
+    const newsPages = paginate(nd.news, 5);
+    newsPages.forEach((news, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      slideHeader(s, 3, 'Recent News & Developments' + (cont?" (cont'd)":''), '近期新闻与动态' + (cont?'（续）':''), '● Live Search', C.green);
+
+      const rowH = (H - 1.55) / Math.max(news.length, 1);
+      news.forEach((n, i) => {
+        const ry = 1.25 + i * rowH;
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.35, y:ry, w:W-0.7, h:rowH-0.1, fill:{ color: i%2===0?C.white:C.gray100 }, line:{ color:C.gray200 }, rectRadius:0.06 });
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.4, y:ry+0.06, w:1.1, h:rowH-0.22, fill:{ color:C.navy }, line:{ color:C.navy }, rectRadius:0.05 });
+        s.addText(n.date||'', { x:0.4, y:ry+0.06, w:1.1, h:rowH-0.22, fontSize:9, bold:true, color:'94A3B8', fontFace:FONT_EN, align:'center', valign:'middle', margin:0, fit:'shrink' });
+        s.addText((n.headline||'') + (n.headlineZh?' · '+n.headlineZh:''), { x:1.62, y:ry+0.08, w:11.2, h:0.3, fontSize:11, bold:true, color:C.gray900, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+        s.addText((n.summary||'')+(n.summaryZh?' · '+n.summaryZh:''), { x:1.62, y:ry+0.38, w:10.0, h:rowH-0.56, fontSize:9.5, color:C.gray700, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+        s.addText('📰 ' + (n.source||''), { x:11.6, y:ry+0.38, w:1.5, h:0.28, fontSize:8.5, color:C.teal, fontFace:FONT_EN, align:'right', margin:0 });
+      });
+      s.addNotes('Recent news and developments' + (cont?' (continued).':'.'));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 5 — STRATEGIC PRIORITIES
+  ════════════════════════════════════════ */
+  setPptProg(41, 'Strategic priorities · 战略重点…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    slideHeader(s, 4, 'Business Priorities & Strategic Agenda', '业务重点与战略议程', '● Live Research', C.green);
+
+    const prios = (sd.priorities||[]).slice(0,4);
+    const priColors = [C.navy, C.teal, C.amber, C.navyLight];
+    const cw = (W - 0.7 - 0.3) / 2;
+    prios.forEach((p, i) => {
+      const col = i % 2, row = Math.floor(i / 2);
+      const px = 0.35 + col * (cw + 0.15);
+      const py = 1.25 + row * 2.8;
+      const pc = priColors[i];
+      const isDark = pc !== C.amber;
+      addCard(s, px, py, cw, 2.65);
+      s.addShape(prs.shapes.OVAL, { x:px+0.18, y:py+0.18, w:0.6, h:0.6, fill:{ color:pc }, line:{ color:pc } });
+      s.addText(String(i+1), { x:px+0.18, y:py+0.18, w:0.6, h:0.6, fontSize:16, bold:true, color:isDark?C.white:C.navy, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+      s.addText((p.title||'') + (p.titleZh?' · '+p.titleZh:''), { x:px+0.9, y:py+0.2, w:cw-1.1, h:0.56, fontSize:12, bold:true, color:C.gray900, fontFace:FONT_ZH, margin:0, wrap:true });
+      addBiBox(s, px+0.15, py+0.9, cw-0.3, 1.6, p.body||'', p.bodyZh||'', '', '');
+    });
+    s.addNotes('Strategic priorities 1-4.');
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 6 — PROGRAM NUMBERS
+  ════════════════════════════════════════ */
+  setPptProg(48, 'Program numbers · 项目数据…');
+  {
+    const numPages = paginate(sd.techNumbers, 6);
+    numPages.forEach((pageItems, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      slideHeader(s, 5, 'Program Numbers & Metrics' + (cont?" (cont'd)":''), '项目数据与指标' + (cont?'（续）':''), '● Live Research', C.green);
+
+      const gx = 0.35, gy = 1.25, gw = W - 0.7, gh = H - 1.55, gap = 0.2;
+      const cols = Math.max(1, Math.min(3, pageItems.length));
+      const rows = Math.max(1, Math.ceil(pageItems.length / cols));
+      const tw = (gw - gap * (cols - 1)) / cols;
+      const th = (gh - gap * (rows - 1)) / rows;
+      pageItems.forEach((n, i) => {
+        const col = i % cols, row = Math.floor(i / cols);
+        addNumberTile(s, gx + col * (tw + gap), gy + row * (th + gap), tw, th, n);
+      });
+      s.addNotes('Program numbers and key metrics' + (cont?' (continued).':'.'));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 7 — ACTIVE INVESTMENTS & BUYING SIGNALS
+  ════════════════════════════════════════ */
+  setPptProg(53, 'Active investments · 当前投资…');
+  {
+    const invPages = paginate(sd.techInvestments, 3);
+    const invColors = [C.navy, C.teal, C.navyLight];
+    invPages.forEach((pageItems, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      const isLast = pageIdx === invPages.length - 1;
+      slideHeader(s, 6, 'Active Investments & Buying Signals' + (cont?" (cont'd)":''), '当前投资与购买信号' + (cont?'（续）':''), '🔧 Live Research', C.teal);
+
+      const gx = 0.35, gy = 1.25, gw = W - 0.7;
+      const cardH = isLast ? 3.55 : 5.55;
+      const n = Math.max(pageItems.length, 1);
+      const cardW = (gw - 0.2 * (n - 1)) / n;
+      pageItems.forEach((t, i) => {
+        const tx = gx + i * (cardW + 0.2);
+        addCard(s, tx, gy, cardW, cardH);
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:tx+0.12, y:gy+0.14, w:cardW-0.24, h:0.4, fill:{ color:invColors[i%invColors.length] }, line:{ color:invColors[i%invColors.length] }, rectRadius:0.05 });
+        s.addText((t.category||'') + (t.categoryZh?' · '+t.categoryZh:''), { x:tx+0.12, y:gy+0.14, w:cardW-0.24, h:0.4, fontSize:11, bold:true, color:C.white, fontFace:FONT_ZH, align:'center', valign:'middle', margin:0, wrap:true, fit:'shrink' });
+        const enItems = (t.items||[]).join('\n');
+        const zhItems = (t.itemsZh||[]).join('\n');
+        addBiBox(s, tx, gy+0.66, cardW, cardH-0.76, enItems, zhItems, 'English', '中文');
+      });
+      if (isLast) {
+        addBiBox(s, gx, gy + 3.7, gw, H - 1.55 - 3.7, sd.signals||'', sd.signalsZh||'', 'Buying Signals & Triggers', '购买信号与触发点');
+      }
+      s.addNotes('Technology investments' + (isLast ? ' and buying signals.' : ' (continued).'));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 8 — COMPETITIVE LANDSCAPE
+  ════════════════════════════════════════ */
+  setPptProg(57, 'Competitive landscape · 竞争格局…');
+  {
+    const compPages = paginate(cd.competitors, 5);
+    const cols = [2.2, 3.2, 3.2, 1.4];
+    const headers = ['Competitor 竞争对手','Strengths 优势','Our Advantage 我方优势','Threat 威胁'];
+    compPages.forEach((comps, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      const isLast = pageIdx === compPages.length - 1;
+      slideHeader(s, 7, 'Competitive Landscape' + (cont?" (cont'd)":''), '竞争格局' + (cont?'（续）':''), '✦ AI Research', C.purple);
+
+      // Table header
+      let cx = 0.35;
+      s.addShape(prs.shapes.RECTANGLE, { x:0.35, y:1.25, w:W-0.7, h:0.42, fill:{ color:C.navy }, line:{ color:C.navy } });
+      headers.forEach((h, i) => {
+        s.addText(h, { x:cx+0.08, y:1.28, w:cols[i]-0.12, h:0.36, fontSize:9, bold:true, color:C.white, fontFace:FONT_ZH, valign:'middle', margin:0 });
+        cx += cols[i];
+      });
+      const rowH = (isLast && cd.differentiation) ? 0.98 : 1.08;
+      comps.forEach((c, i) => {
+        const ry = 1.7 + i * rowH;
+        s.addShape(prs.shapes.RECTANGLE, { x:0.35, y:ry, w:W-0.7, h:rowH-0.06, fill:{ color: i%2===0?C.white:C.gray100 }, line:{ color:C.gray200 } });
+        cx = 0.35;
+        const tColor = c.threat==='HIGH'?C.red:c.threat==='MEDIUM'?'D97706':C.green;
+        const cells = [
+          c.name||'',
+          (c.strengths||'')+(c.strengthsZh?'\n'+c.strengthsZh:''),
+          (c.advantage||'')+(c.advantageZh?'\n'+c.advantageZh:''),
+          c.threat||''
+        ];
+        cells.forEach((cell, ci) => {
+          if (ci === 3) {
+            s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:cx+0.2, y:ry+(rowH-0.41), w:cols[ci]-0.4, h:0.35, fill:{ color:tColor }, line:{ color:tColor }, rectRadius:0.04 });
+            s.addText(cell, { x:cx+0.2, y:ry+(rowH-0.41), w:cols[ci]-0.4, h:0.35, fontSize:9, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+          } else {
+            s.addText(cell, { x:cx+0.08, y:ry+0.06, w:cols[ci]-0.16, h:rowH-0.12, fontSize:ci===0?10.5:9.5, bold:ci===0, color:ci===0?C.navy:C.gray700, fontFace:FONT_ZH, valign:'middle', margin:0, wrap:true, fit:'shrink' });
+          }
+          cx += cols[ci];
+        });
+      });
+      // Differentiation (only on last page)
+      if (isLast && cd.differentiation) {
+        addBiBox(s, 0.35, 6.6, W-0.7, 0.78, cd.differentiation, cd.differentiationZh||'', 'Our Differentiation', '我们的差异化');
+      }
+      s.addNotes('Competitive landscape analysis' + (cont?' (continued).':'.'));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 9 — PAIN POINTS
+  ════════════════════════════════════════ */
+  setPptProg(65, 'Pain points · 痛点…');
+  {
+    // Bucket pains by urgency into three dedicated slide groups so each card
+    // gets room for bullet points instead of cramming everything onto one slide.
+    const tiers = [
+      { match: u => u==='HIGH',                   titleEn:'High Priority Pain Points',              titleZh:'高优先级痛点',   badge:C.red },
+      { match: u => u==='MED-HIGH',               titleEn:'Medium Priority Pain Points',            titleZh:'中优先级痛点',   badge:'D97706' },
+      { match: u => u!=='HIGH' && u!=='MED-HIGH', titleEn:'Additional Pain Points & Opportunities', titleZh:'其他痛点与机会', badge:C.teal },
+    ];
+    tiers.forEach(tier => {
+      const items = (cd.pains||[]).filter(p => tier.match((p.urgency||'').toUpperCase()));
+      if (!items.length) return;
+      const pages = paginate(items, 4);
+      pages.forEach((pains, pageIdx) => {
+        const s = prs.addSlide(); slide_n++;
+        const cont = pageIdx > 0;
+        slideHeader(s, 8, tier.titleEn + (cont?" (cont'd)":''), tier.titleZh + (cont?'（续）':''), '✦ AI Research', C.purple);
+
+        const cols = 2, gap = 0.18;
+        const pw = (W - 0.7 - gap) / cols;
+        const rows = Math.ceil(pains.length / cols);
+        const ph = (H - 1.5 - gap * (rows - 1)) / rows;
+        pains.forEach((p, i) => {
+          const col = i % cols, row = Math.floor(i / cols);
+          const px = 0.35 + col * (pw + gap);
+          const py = 1.25 + row * (ph + gap);
+          const urgColor = p.urgency==='HIGH'?C.red:p.urgency==='MED-HIGH'?'D97706':C.teal;
+          addCard(s, px, py, pw, ph);
+          // Urgency badge
+          s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:px+pw-1.3, y:py+0.14, w:1.16, h:0.3, fill:{ color:urgColor }, line:{ color:urgColor }, rectRadius:0.04 });
+          s.addText(p.urgency||'', { x:px+pw-1.3, y:py+0.14, w:1.16, h:0.3, fontSize:9, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+          // Title — EN then ZH stacked so they never collide
+          s.addText(p.title||'', { x:px+0.18, y:py+0.14, w:pw-1.55, h:0.36, fontSize:14, bold:true, color:C.navy, fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink' });
+          s.addText(p.titleZh||'', { x:px+0.18, y:py+0.52, w:pw-0.36, h:0.28, fontSize:11, color:C.teal, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+          // Body as concise bullet points (EN block, then ZH block) instead of long paragraphs
+          const enBullets = toBullets(p.body, 3).map(b => '• ' + b).join('\n');
+          const zhBullets = toBullets(p.bodyZh, 3).map(b => '• ' + b).join('\n');
+          const bodyY = py + 0.88, bodyH = ph - 1.0;
+          s.addText(enBullets, { x:px+0.18, y:bodyY, w:pw-0.36, h:bodyH*0.56, fontSize:11, color:C.gray700, fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink', valign:'top', lineSpacingMultiple:1.1 });
+          s.addText(zhBullets, { x:px+0.18, y:bodyY+bodyH*0.56, w:pw-0.36, h:bodyH*0.44, fontSize:10, color:'0369A1', fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink', valign:'top', lineSpacingMultiple:1.1 });
+        });
+        s.addNotes(tier.titleEn + ' — pain points and buying triggers' + (cont?' (continued).':'.'));
+      });
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 10 — VALUE PROPOSITION
+  ════════════════════════════════════════ */
+  setPptProg(73, 'Value proposition · 价值主张…');
+  {
+    // Two value props per slide, stacked full-width, so titles/callouts/body
+    // never compete for the same space (root cause of the old overlap bug).
+    const vps = (sal.valueProps||[]).slice(0,6);
+    const vpPages = paginate(vps, 2);
+    vpPages.forEach((page, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      s.background = { color: C.navy };
+      // Header (dark variant)
+      s.addShape(prs.shapes.RECTANGLE, { x:0, y:0, w:W, h:0.1, fill:{ color:C.amber }, line:{ color:C.amber } });
+      s.addShape(prs.shapes.RECTANGLE, { x:0, y:0.1, w:W, h:1.0, fill:{ color:C.navyMid }, line:{ color:C.navyMid } });
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.4, y:0.25, w:0.55, h:0.38, fill:{ color:C.amber }, line:{ color:C.amber }, rectRadius:0.04 });
+      s.addText('09', { x:0.4, y:0.25, w:0.55, h:0.38, fontSize:12, bold:true, color:C.navy, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+      s.addText(`Value Proposition — ${D.seller} for ${D.target}` + (cont?" (cont'd)":''), { x:1.1, y:0.26, w:11, h:0.3, fontSize:15, bold:true, color:C.white, fontFace:FONT_EN, margin:0 });
+      s.addText('价值主张' + (cont?'（续）':''), { x:1.1, y:0.58, w:8, h:0.26, fontSize:12, color:'93C5FD', fontFace:FONT_ZH, margin:0 });
+      s.addShape(prs.shapes.RECTANGLE, { x:0, y:H-0.1, w:W, h:0.1, fill:{ color:C.amber }, line:{ color:C.amber } });
+
+      const vw = W - 0.7, gap = 0.18;
+      const rows = page.length || 1;
+      const vh = (H - 1.45 - gap * (rows - 1)) / rows;
+      page.forEach((v, i) => {
+        const vx = 0.35;
+        const vy = 1.25 + i * (vh + gap);
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:vx, y:vy, w:vw, h:vh, fill:{ color:C.navyMid }, line:{ color:C.navyLight }, rectRadius:0.08, shadow:mkShadow() });
+
+        // Title — EN then ZH stacked (own rows, can't collide with the callout)
+        s.addText(v.title||'', { x:vx+0.2, y:vy+0.12, w:vw-3.4, h:0.4, fontSize:16, bold:true, color:'FCD34D', fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink', valign:'middle' });
+        s.addText(v.titleZh||'', { x:vx+0.2, y:vy+0.54, w:vw-3.4, h:0.3, fontSize:12, color:'93C5FD', fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink', valign:'middle' });
+
+        // Match callout — pinned top-right, EN/ZH stacked inside its own box
+        const cw = 3.0;
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:vx+vw-cw-0.2, y:vy+0.14, w:cw, h:0.64, fill:{ color:C.teal }, line:{ color:C.teal }, rectRadius:0.06 });
+        s.addText(v.match||'', { x:vx+vw-cw-0.1, y:vy+0.16, w:cw-0.2, h:0.32, fontSize:10, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0, wrap:true, fit:'shrink' });
+        s.addText(v.matchZh||'', { x:vx+vw-cw-0.1, y:vy+0.46, w:cw-0.2, h:0.28, fontSize:9, color:'E0F2FE', fontFace:FONT_ZH, align:'center', valign:'middle', margin:0, wrap:true, fit:'shrink' });
+
+        // Body — EN/ZH side-by-side panes
+        addBiBox(s, vx+0.2, vy+0.9, vw-0.4, vh-1.22, v.body||'', v.bodyZh||'', '', '');
+
+        // Segment tag (bottom-left)
+        if (v.segment) s.addText(v.segment, { x:vx+0.2, y:vy+vh-0.3, w:vw-0.4, h:0.26, fontSize:9, italic:true, color:'94A3B8', fontFace:FONT_EN, margin:0 });
+      });
+      s.addNotes('Value proposition: how ' + D.seller + ' solves ' + D.target + ' pain points.' + (cont?' (continued)':''));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 11 — STAKEHOLDERS
+  ════════════════════════════════════════ */
+  setPptProg(81, 'Stakeholders · 利益相关者…');
+  {
+    const shPages = paginate(sal.stakeholders, 6);
+    const shColors = [C.navy, C.amber, C.amber, C.teal, C.teal, C.navyLight];
+    const priMap = { Primary:C.amber, Champion:C.green, Influencer:C.gray500, Awareness:C.gray500, Expansion:C.gray500 };
+    shPages.forEach((shs, pageIdx) => {
+      const s = prs.addSlide(); slide_n++;
+      const cont = pageIdx > 0;
+      slideHeader(s, 10, 'Stakeholder Map' + (cont?" (cont'd)":''), '利益相关者地图' + (cont?'（续）':''), '✦ AI Research', C.purple);
+
+      const cols = Math.min(3, shs.length) || 3;
+      const shw = (W - 0.7 - 0.14 * (cols - 1)) / cols;
+      const rows = Math.ceil(shs.length / cols) || 1;
+      const shh = (H - 1.45 - 0.1 * (rows - 1)) / rows;
+      shs.forEach((sh, i) => {
+        const col = i % cols, row = Math.floor(i / cols);
+        const sx = 0.35 + col * (shw + 0.14);
+        const sy = 1.25 + row * (shh + 0.1);
+        addCard(s, sx, sy, shw, shh - 0.05);
+        const priC = priMap[sh.priority] || C.gray500;
+        s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:sx+shw-1.3, y:sy+0.1, w:1.18, h:0.26, fill:{ color:priC }, line:{ color:priC }, rectRadius:0.04 });
+        s.addText(sh.priority||'', { x:sx+shw-1.3, y:sy+0.1, w:1.18, h:0.26, fontSize:8, bold:true, color:sh.priority==='Primary'||sh.priority==='Champion'?C.navy:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+        // Avatar circle
+        const aColor = sh.color ? sh.color.replace('#','') : shColors[i % shColors.length];
+        s.addShape(prs.shapes.OVAL, { x:sx+0.15, y:sy+0.12, w:0.56, h:0.56, fill:{ color:aColor }, line:{ color:aColor } });
+        s.addText((sh.name||'A').charAt(0).toUpperCase(), { x:sx+0.15, y:sy+0.12, w:0.56, h:0.56, fontSize:18, bold:true, color:C.white, fontFace:FONT_EN, align:'center', valign:'middle', margin:0 });
+        s.addText(sh.name||'', { x:sx+0.82, y:sy+0.14, w:shw-1.0, h:0.28, fontSize:11, bold:true, color:C.gray900, fontFace:FONT_EN, margin:0, fit:'shrink' });
+        s.addText((sh.title||'')+(sh.titleZh?'\n'+sh.titleZh:''), { x:sx+0.82, y:sy+0.42, w:shw-1.0, h:0.36, fontSize:9, color:C.gray500, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+        s.addText((sh.msg||'')+(sh.msgZh?'\n'+sh.msgZh:''), { x:sx+0.15, y:sy+0.82, w:shw-0.3, h:shh-1.05, fontSize:9.5, color:C.gray700, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+      });
+      s.addNotes('Stakeholder map — verify roles before outreach' + (cont?' (continued).':'.'));
+    });
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 12 — NEXT STEPS (3 PHASES)
+  ════════════════════════════════════════ */
+  setPptProg(89, 'Next steps · 后续行动…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    slideHeader(s, 11, 'Recommended Next Steps', '建议后续行动', '✦ AI Generated', C.purple);
+
+    const phases = (sal.phases||[]).slice(0,3);
+    const phColors = [
+      { bg:C.navy,    fg:C.white, dot:C.amber },
+      { bg:C.teal,    fg:C.white, dot:C.teal  },
+      { bg:C.amber,   fg:C.navy,  dot:C.navy  },
+    ];
+    const pw2 = (W - 0.7 - 0.3) / 3;
+    phases.forEach((ph, i) => {
+      const pc = phColors[i];
+      const px = 0.35 + i * (pw2 + 0.12);
+      // Header
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:px, y:1.25, w:pw2, h:1.5, fill:{ color:pc.bg }, line:{ color:pc.bg }, rectRadius:0.08 });
+      s.addShape(prs.shapes.RECTANGLE, { x:px, y:2.3, w:pw2, h:0.45, fill:{ color:pc.bg }, line:{ color:pc.bg } });
+      s.addText((ph.phase||'')+(ph.phaseZh?' · '+ph.phaseZh:''), { x:px+0.14, y:1.3, w:pw2-0.28, h:0.3, fontSize:9, bold:true, color:pc.fg, fontFace:FONT_ZH, margin:0, charSpacing:2 });
+      s.addText((ph.period||'')+(ph.periodZh?' · '+ph.periodZh:''), { x:px+0.14, y:1.62, w:pw2-0.28, h:0.26, fontSize:9.5, color:pc.fg, fontFace:FONT_ZH, margin:0 });
+      s.addText((ph.name||'')+(ph.nameZh?'\n'+ph.nameZh:''), { x:px+0.14, y:1.9, w:pw2-0.28, h:0.46, fontSize:13, bold:true, color:pc.fg, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+      // Actions body
+      s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:px, y:2.72, w:pw2, h:H-2.95, fill:{ color:C.white }, line:{ color:C.gray200 }, rectRadius:0.08 });
+      s.addShape(prs.shapes.RECTANGLE, { x:px, y:2.72, w:pw2, h:0.3, fill:{ color:C.white }, line:{ color:C.white } });
+      const actions = (ph.actions||[]).slice(0,4);
+      const actionH = (H - 2.95 - 0.18) / Math.max(actions.length, 1);
+      actions.forEach((a, ai) => {
+        const ay = 2.82 + ai * actionH;
+        s.addShape(prs.shapes.OVAL, { x:px+0.16, y:ay+0.05, w:0.18, h:0.18, fill:{ color:pc.bg }, line:{ color:pc.bg } });
+        s.addText((a||'')+(ph.actionsZh&&ph.actionsZh[ai]?'\n'+ph.actionsZh[ai]:''), { x:px+0.42, y:ay, w:pw2-0.56, h:actionH-0.06, fontSize:9.5, color:C.gray700, fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+      });
+    });
+    s.addNotes('90-day account activation plan.');
+  }
+
+  /* ════════════════════════════════════════
+     SLIDE 13 — ACCOUNT GOAL & OPEN QUESTIONS
+  ════════════════════════════════════════ */
+  setPptProg(95, 'Finalizing · 收尾…');
+  {
+    const s = prs.addSlide(); slide_n++;
+    slideHeader(s, 12, 'Account Goal & Open Questions', '账户目标与待解问题', '✎ Action Items', '6D28D9');
+
+    // Goal box
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.35, y:1.25, w:W-0.7, h:1.35, fill:{ color:C.navy }, line:{ color:C.navy }, rectRadius:0.08 });
+    s.addText('🎯 Account Goal · 账户目标', { x:0.55, y:1.33, w:4, h:0.3, fontSize:11, bold:true, color:'94A3B8', fontFace:FONT_EN, margin:0 });
+    s.addText(sal.goal||'', { x:0.55, y:1.64, w:(W-1.1)/2-0.1, h:0.82, fontSize:11, color:'E2E8F0', fontFace:FONT_EN, margin:0, wrap:true, fit:'shrink' });
+    s.addText(sal.goalZh||'', { x:(W-1.1)/2+0.55, y:1.64, w:(W-1.1)/2-0.1, h:0.82, fontSize:11, color:'7DD3FC', fontFace:FONT_ZH, margin:0, wrap:true, fit:'shrink' });
+
+    // Questions bi-box
+    addBiBox(s, 0.35, 2.75, W-0.7, 3.6, sal.questions||'', sal.questionsZh||'', 'Discovery Questions', '调研问题');
+
+    // Footer
+    s.addShape(prs.shapes.ROUNDED_RECTANGLE, { x:0.35, y:6.5, w:W-0.7, h:0.72, fill:{ color:C.gray100 }, line:{ color:C.gray200 }, rectRadius:0.06 });
+    s.addText(`Generated by: ${D.seller} Account Intelligence Tool  ·  ${new Date().toLocaleDateString()}  ·  All content is AI-generated and should be verified before use.  · 所有内容由AI生成，使用前请核实。`, { x:0.5, y:6.54, w:W-1.0, h:0.64, fontSize:8.5, color:C.gray500, fontFace:FONT_ZH, align:'center', valign:'middle', margin:0 });
+    s.addNotes('Account goal and open discovery questions.');
+  }
+
+  /* ── Save ── */
+  setPptProg(98, 'Saving file · 保存文件…');
+  await prs.writeFile({ fileName: buildFilename() });
+  setPptProg(100, 'Download complete · 下载完成 ✅');
+}
+
+
+</script>
+</body>
+</html>
