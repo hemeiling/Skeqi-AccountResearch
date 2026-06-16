@@ -605,12 +605,15 @@ app.delete('/api/research-cache/:type/:key', (req, res) => {
 
 // ── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
+  const isPersistent = DATA_DIR !== __dirname;
   console.log(`
 ╔══════════════════════════════════════════════════════╗
 ║   Account Plan Generator — Proxy Server              ║
 ║   http://localhost:${PORT}                              ║
 ╠══════════════════════════════════════════════════════╣
 ║  API key loaded: ${process.env.ANTHROPIC_API_KEY ? '✅ Yes (' + process.env.ANTHROPIC_API_KEY.slice(0,14) + '…)' : '❌ NOT SET — add to .env'}
+║  Data directory: ${DATA_DIR}
+║  Report storage: ${isPersistent ? '✅ Persistent disk' : '⚠️  Project folder (set DATA_DIR=/data on Render for persistence)'}
 ║  Open browser:   http://localhost:${PORT}               ║
 ╚══════════════════════════════════════════════════════╝
 `);
